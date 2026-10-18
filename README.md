@@ -2,19 +2,22 @@
 
 Ứng dụng Machine Learning chạy cục bộ: kiểm tra dữ liệu → EDA → tạo đặc trưng quá khứ →
 huấn luyện và tuning → đánh giá test → dự báo → đề xuất nhập hàng. Giao diện Streamlit có
-sáu trang tiếng Việt. Các mô hình dự báo dùng scikit-learn.
+sáu trang tiếng Việt. Các mô hình dự báo dùng scikit-learn; không dùng API mô hình ngôn ngữ lớn.
 
 Dữ liệu [Kaggle Store Sales](https://www.kaggle.com/competitions/store-sales-time-series-forecasting/data)
 gồm **3.000.888 dòng, 54 cửa hàng, 33 nhóm hàng**, từ 01/01/2013 đến 15/08/2017.
 EDA dùng toàn bộ CSV. Thực nghiệm chính thức dùng **54 cửa hàng × 3 nhóm**
 `BEVERAGES`, `GROCERY I`, `PRODUCE`: **162 chuỗi, 272.808 quan sát**.
 Phạm vi này được chọn trước khi xem metric để phù hợp máy cá nhân; chưa train đủ 33 nhóm.
+Kết quả chính thức nằm ở `results/official` và `models/official`; dữ liệu mô phỏng giữ riêng ở `data/demo`.
 
 ## 1. Cài đặt môi trường
 
 Mở terminal tại thư mục gốc dự án. Khuyến nghị Python 3.11; môi trường thực nghiệm đã kiểm tra
 là **macOS arm64, Python 3.9.6**. Phiên bản thư viện nằm trong `requirements.txt`;
-`requirements-lock.txt` lưu môi trường thực nghiệm để đối chiếu.
+`requirements-lock.txt` lưu môi trường thực nghiệm để đối chiếu. Phiên bản thực thi cũng được ghi
+trong `run_manifest.json`. NumPy 1.26.4 được dùng để tránh cảnh báo số học đã gặp với NumPy 2.0.2
+trên máy thử nghiệm.
 
 macOS / Linux:
 
@@ -122,6 +125,29 @@ Windows PowerShell:
 python -m streamlit run app.py
 ```
 
+### Chạy demo bằng dữ liệu mô phỏng (tùy chọn)
+
+Không cần tải dữ liệu hoặc token Kaggle cho demo. Sau khi kích hoạt môi trường, chạy:
+
+```bash
+python -m src.demo_data
+python -m src.data_processing --data data/demo/sales.csv
+python -m src.eda --data data/demo/sales.csv --output results/demo
+python -m src.train --data data/demo/sales.csv --output results/demo --model-dir models/demo --quick --trials 3
+python -m src.evaluate --predictions results/demo/metrics/test_predictions.csv --output results/demo/metrics/recomputed_test.json
+python -m src.predict --input data/demo/sales.csv --model models/demo/model.joblib --store 1 --family BEVERAGES --horizon 30 --output results/demo/forecast_30_days.csv
+python -m src.report --results results/demo --output docs/bao_cao_demo.md
+python -m pytest -q --junitxml=results/metrics/pytest.xml
+python -m streamlit run app.py
+```
+
+Mở **http://localhost:8501** và chọn nguồn **Demo mô phỏng**. Giao diện tự chọn nguồn Kaggle
+khi có manifest chính thức, nên cần đổi nguồn để xem kết quả demo. Demo lưu riêng trong
+`data/demo`, `results/demo`, `models/demo` và `docs/bao_cao_demo.md`.
+
+`--quick` giảm số cây/vòng boosting và mặc định chọn tối đa 12 chuỗi theo khóa sắp xếp;
+không cắt ngẫu nhiên số dòng. Các chuỗi đã dùng được ghi trong manifest.
+
 ### Huấn luyện toàn bộ 33 nhóm hàng (tùy chọn)
 
 Bỏ các bộ lọc `--stores`, `--families`, `--max-series` và không dùng `--quick` để học cả
@@ -162,26 +188,74 @@ Kết quả tham chiếu trên 4.860 quan sát test, lấy từ `results/officia
 | Random Forest | 445,633 | 692,496 | 12,904 |
 | HistGradientBoosting | 476,471 | 732,513 | 13,797 |
 
-MAE/RMSE/WAPE càng thấp càng tốt; không diễn giải `100 − WAPE` là accuracy.
+MAE là trung bình sai số tuyệt đối; RMSE nhấn mạnh sai số lớn;
+WAPE (%) = 100 × tổng sai số tuyệt đối / tổng |sales|. Khi mẫu số bằng 0, WAPE không xác định
+(JSON `null`). WAPE gộp thiên về chuỗi sales lớn. MAE/RMSE/WAPE càng thấp càng tốt;
+không diễn giải `100 − WAPE` là accuracy.
 Thời gian train trong bảng comparison là lần refit train + validation, không gồm tổng tuning.
 Suy luận đo xử lý dữ liệu trong bộ nhớ và cả horizon, không gồm đọc CSV/nạp model;
-ms/dòng là thời gian batch chia số dòng.
+ms/dòng là thời gian batch chia số dòng, không phải độ trễ một yêu cầu đơn lẻ.
+Tốc độ phụ thuộc phần cứng và tải máy.
 
 ## 5. Quy tắc mô hình và dữ liệu mới
 
-- Chia theo ngày: 30 ngày validation, 30 ngày test, phần trước là train. Mặc định cần ít nhất
-  `60 + 2 × horizon` ngày và đủ lịch sử cho từng chuỗi; không random split.
-- Lag 1/7/14/28, rolling mean/std 7/14/28 với `shift(1)`, đặc trưng lịch và chu kỳ.
-  Encoder/scaler chỉ fit trên tập đang dùng để học. Ngày thiếu được forward fill làm state,
-  đánh dấu `is_observed=False` và không dùng làm nhãn train/test.
-- Ba mô hình: Ridge, Random Forest, HistGradientBoosting; seasonal naive dùng lag_7 làm mốc.
-  Tuning bằng ParameterSampler và recursive validation; seed 42.
-- Chọn WAPE validation thấp nhất, fallback MAE nếu mẫu số bằng 0; khóa lựa chọn trước test.
-  Dự báo đệ quy dùng dự báo đã sinh để cập nhật lag, không dùng sales thật trong holdout.
-- Khuyến mãi/ngày lễ chỉ dùng cho EDA; mô hình hiện chưa dùng biến ngoại sinh tương lai.
+Yêu cầu “thể hiện rõ quá trình train” được đáp ứng bằng mã `.fit(X_train,y_train)`,
+mốc train/validation/test, nhật ký từng cấu hình, tham số đầy đủ, loss train chẩn đoán,
+bảng tuning và artefact lưu/nạp. Xem [hướng dẫn trình bày bằng chứng](docs/minh_chung_huan_luyen.md)
+và mục **8.1–8.2, 9–10** của [báo cáo](docs/bao_cao_giua_ky.md).
+Ridge/RF không cần có epoch như mạng nơ-ron. Đồ thị HGB theo vòng boosting dùng số đo thật,
+không phải animation hoặc log dựng sẵn.
+
+```mermaid
+flowchart LR
+    A[CSV lịch sử có sales] --> B[Kiểm tra và sắp ngày]
+    B --> C[Train: lag và rolling từ quá khứ]
+    C --> D[Ba mô hình + random search]
+    D --> E[Recursive validation]
+    E --> F[Khóa lựa chọn]
+    F --> G[Refit train + validation]
+    G --> H[Test giữ riêng]
+    H --> I[Refit toàn lịch sử sau đánh giá]
+    I --> J[Model triển khai]
+    J --> K[Dự báo đệ quy]
+    K --> L[CSV và đề xuất nhập hàng]
+```
+
+- Chia theo **ngày**, mặc định 30 ngày validation, 30 ngày test; phần trước là train.
+  Cần ít nhất `60 + 2 × horizon` ngày; mỗi chuỗi phải có lịch sử đủ dài và cùng ngày chốt.
+  Không dùng random train_test_split. Tất cả series của một ngày thuộc cùng một tập.
+- Lag 1/7/14/28; rolling mean/std 7/14/28, **shift(1) trước rolling**; lịch ngày/tháng/thứ/cuối tuần,
+  chu kỳ sin/cos, trend. Warm-up thiếu feature bị loại. One-hot và scaler chỉ fit trên phần train đang dùng.
+- Ngày thiếu được chèn theo lịch, forward fill **chỉ** làm state; đánh dấu is_observed=False,
+  không làm nhãn train hoặc ground truth. Sales thật bị thiếu/âm/vô hạn và khóa trùng bị từ chối.
+- Không dùng khuyến mãi/dầu/giao dịch/sự kiện tương lai làm feature. EDA vẫn phân tích onpromotion
+  và ngày lễ khi có dữ liệu. Mô hình hiện tại chưa học tác động riêng của các biến này.
+- Mô hình: **Ridge**, **RandomForestRegressor**, **HistGradientBoostingRegressor**.
+  HGB là boosting tích hợp sklearn thay LightGBM/XGBoost để giữ bộ cài gọn.
+  **Seasonal naive** lấy lag_7 làm mốc đối chiếu, không có bước fit.
+- Tuning dùng **ParameterSampler + vòng recursive validation theo thời gian tự viết**,
+  không phải RandomizedSearchCV mặc định trên bảng lag. Có cấu hình gốc và tìm kiếm ngẫu nhiên,
+  seed 42. Không gian tham số, mọi lượt thử, kết quả trước/sau đều được lưu.
+- Validation/test được dự báo **cả horizon từ một origin**, cập nhật lag bằng dự báo đã sinh.
+  Không dùng sales thật bên trong holdout để dự báo các ngày sau. Chặn dự báo âm tại 0.
+- Chọn WAPE validation nhỏ nhất, dùng MAE nếu mẫu số bằng 0; hòa điểm ưu tiên tốc độ suy luận.
+  Khóa lựa chọn **trước** test. Test đo mọi thuật toán để so sánh cuối cùng, không dùng chọn model.
+- `evaluation_model.joblib` fit train+validation dùng tái hiện test.
+  `model.joblib` refit toàn bộ lịch sử **sau khi** đánh giá, dùng dự báo mới.
+  Không dùng bản refit để tính lại chất lượng trên cùng test.
+
+### Dự báo bằng dữ liệu lịch sử mới
 
 Để dự báo từ lịch sử cập nhật, đặt CSV tại `data/raw/history.csv`, có cùng schema và ít nhất
-**28 ngày lịch sử mỗi chuỗi**. Chọn chuỗi đã xuất hiện khi train; dự báo bắt đầu sau ngày cuối đầu vào:
+**28 ngày lịch sử mỗi chuỗi**. Ví dụ dưới đây chỉ minh họa schema hai dòng, chưa đủ lịch sử:
+
+```csv
+date,store_nbr,family,sales,onpromotion
+2025-01-01,1,BEVERAGES,100.5,0
+2025-01-02,1,BEVERAGES,103.0,2
+```
+
+Chọn chuỗi đã xuất hiện khi train; dự báo bắt đầu sau ngày cuối đầu vào:
 
 ```bash
 python -m src.predict --input data/raw/history.csv --model models/official/model.joblib --store 1 --family BEVERAGES --horizon 30 --output results/official/forecast_new.csv
@@ -189,33 +263,86 @@ python -m src.predict --input data/raw/history.csv --model models/official/model
 
 Bỏ `--store`/`--family` chỉ khi mọi chuỗi trong CSV đều đã được train và cập nhật cùng ngày cuối.
 Đầu ra gồm `date,store_nbr,family,prediction` và sidecar `.metadata.json` ghi nguồn, hash và origin.
-Chỉ nạp `.joblib` tin cậy do nhóm tự train.
+Chỉ nạp `.joblib` tin cậy do nhóm tự train, vì joblib dùng cơ chế pickle.
 
 ## 6. Giao diện và tồn kho
 
-Sáu trang gồm **Tổng quan**, **Phân tích dữ liệu**, **Dự báo nhu cầu**, **Quản lý tồn kho**,
-**Đánh giá mô hình**, **Giới thiệu**. Giao diện hỗ trợ dự báo 7/30 ngày, tải CSV,
-xem metric/tuning và nhập dữ liệu tồn kho.
+1. **Tổng quan:** nguồn dữ liệu, số quan sát/cửa hàng/nhóm hàng, xu hướng và model đang nạp.
+2. **Phân tích dữ liệu:** chọn cửa hàng/nhóm/ngày, xem xu hướng, thứ/tháng, khuyến mãi và chất lượng dữ liệu.
+3. **Dự báo nhu cầu:** chọn chuỗi đã train, 7/30 ngày, nhấn “Thực hiện dự báo”, xem bảng/biểu đồ và tải CSV.
+4. **Quản lý tồn kho:** nhập tồn hiện tại, lead time, tồn an toàn, hàng chắc chắn về; xác nhận đơn vị trước tính.
+5. **Đánh giá mô hình:** bảng metric validation/test, thời gian thực, tuning và biểu đồ test của model chọn.
+6. **Giới thiệu:** mục tiêu, phạm vi và giới hạn.
+
+Đơn vị tính tồn kho phải khớp đơn vị dự báo. Sales tổng nhóm có thể không đồng nhất đơn vị vật lý;
+không tự chuyển sang số SKU, thùng hoặc tiền. Demo dùng “đơn vị nhu cầu mô phỏng”.
 
 ```text
 D_L = tổng dự báo trong L ngày giao hàng
-A   = tồn hiện tại + hàng chắc chắn về và sử dụng đúng hạn
+A   = tồn hiện tại + hàng chắc chắn về và có thể sử dụng đúng hạn
 T   = D_L + tồn an toàn
-Q   = max(0, T − A)
+Q   = max(0, T - A)
+Thiếu theo quy tắc khi A < T; dư theo quy tắc khi A > 2 × T.
 ```
 
-Cần xác nhận tồn kho và dự báo cùng đơn vị. Sales tổng nhóm có thể có phần thập phân,
-không tự chuyển thành số SKU/thùng/tiền. Lead time phải nằm trong horizon.
-Thiếu khi `A < T`, dư theo quy tắc khi `A > 2 × T`; đây là hỗ trợ quyết định,
-chưa tối ưu chi phí hoặc tự động đặt hàng.
+Nếu lead time vượt horizon, chương trình từ chối thay vì tự kéo dài nhu cầu không có dự báo.
+Giữ phần thập phân của Q; chỉ làm tròn lên khi đơn vị thực là rời rạc. Hàng mới đặt có thể chỉ đến
+cuối lead time nên Q không đảm bảo tránh mọi thiếu hụt trước khi nhận hàng. Không có tối ưu chi phí
+hoặc tự động đặt hàng; đây là quy tắc hỗ trợ quyết định.
 
-## 7. Tài liệu và xử lý lỗi
+## 7. Cấu trúc và artefact
+
+```text
+app.py                         Sáu trang Streamlit
+src/data_processing.py         Schema, chất lượng, lịch ngày và chia dữ liệu
+src/feature_engineering.py     Feature train / inference dùng cùng công thức
+src/models.py                  Ba mô hình ML và seasonal naive
+src/tuning.py                  Không gian tham số + random search recursive
+src/train.py                   Toàn bộ thực nghiệm, refit, lưu/nạp kiểm chứng
+src/evaluate.py                Metric, biểu đồ, tái tính test CSV
+src/predict.py                 CLI pipeline lịch sử mới → dự báo
+src/inventory.py               Công thức tồn kho và kiểm tra đầu vào
+src/demo_data.py               Sinh CSV mô phỏng có metadata
+src/eda.py                     EDA và ngày lễ theo địa bàn
+src/report.py                  Sinh báo cáo tiếng Việt từ kết quả thực
+src/training_evidence.py       Nhật ký từng fit, snapshot mã nguồn, đồ thị train/tuning
+src/verify_run.py              Tái hiện holdout và kiểm tra suy luận trên CSV thực
+src/utils.py                   JSON, SHA-256, metadata nguồn
+data/{raw,demo,processed}/     Dữ liệu chính thức, demo và trung gian
+models/{demo,official}/        evaluation_model.joblib và model.joblib
+results/<nguồn>/               run_manifest.json, forecast_{7,30}_days.csv,
+                              forecast_{7,30}_days_all_series.csv (lần chạy official)
+                              training.log, training_events.jsonl, source_snapshot/
+results/<nguồn>/metrics/       comparison, tuning, tuning_summary, test_predictions,
+                              all_models_test_predictions, test_by_series,
+                              data_quality, eda, recomputed_test, training_history, verification
+results/<nguồn>/figures/       Biểu đồ HTML tương tác, mở cục bộ
+results/metrics/pytest.xml     Kết quả kiểm thử thực thi
+tests/                        Tiền xử lý, leakage, recursion, E2E, EDA và giao diện
+docs/                         Báo cáo, phân công, thuyết trình và nhật ký kiểm thử
+```
+
+## 8. Tài liệu, kiểm thử và xử lý lỗi
 
 Mã nguồn pipeline ở `src/`, giao diện ở `app.py`, kiểm thử ở `tests/`.
 Đọc [báo cáo](docs/bao_cao_giua_ky.md), [minh chứng huấn luyện](docs/minh_chung_huan_luyen.md),
 [kiểm thử](docs/kiem_thu.md), [đối chiếu yêu cầu](docs/doi_chieu_yeu_cau.md),
 [thuyết trình](docs/huong_dan_thuyet_trinh.md), [phân công](docs/phan_cong_nhiem_vu.md)
 và [nhật ký xây dựng](docs/nhat_ky_build_du_an.md).
+
+```bash
+python -m pytest -q --junitxml=results/metrics/pytest.xml
+python -m pip check
+```
+
+Test tự tạo dữ liệu/artefact trong thư mục tạm, không yêu cầu có model demo sẵn. Có test E2E
+train ba thuật toán → tuning → test → lưu/nạp → CSV lịch sử mới → CLI dự báo,
+kiểm tra tái hiện holdout bằng evaluation_model và test sáu trang bằng Streamlit AppTest.
+Nhật ký xác nhận thực thi nằm ở docs/kiem_thu.md. AppTest không thay kiểm tra hình ảnh trong trình duyệt.
+
+Kết quả đã lưu tại `results/metrics/pytest.xml`: **41 passed**, 0 failures, 0 errors, 0 skipped.
+Kiểm chứng model nạp lại và dự báo 7/30 ngày nằm ở `results/official/metrics/verification.json`;
+kiểm chứng AppTest trên CSV thật nằm ở `results/official/metrics/app_verification.json`.
 
 | Hiện tượng | Cách xử lý |
 | --- | --- |
@@ -228,3 +355,12 @@ và [nhật ký xây dựng](docs/nhat_ky_build_du_an.md).
 | Chuỗi chưa cập nhật cùng ngày | Cập nhật lịch sử hoặc dự báo từng chuỗi bằng bộ lọc |
 | `verify_run` báo CSV đã đổi | Dùng đúng CSV của lần train hoặc train lại với dữ liệu mới |
 | Chưa tính được tồn kho | Xác nhận cùng đơn vị; kiểm tra số không âm và lead time ≤ horizon |
+| Lead time vượt chân trời | Chọn 30 ngày hoặc dùng CLI với horizon phù hợp |
+| Chạy Kaggle toàn bộ chậm | Dùng --quick --max-series 12 hoặc giới hạn --stores/--families |
+| Cổng 8501 đã dùng | Thêm --server.port 8502 vào lệnh streamlit |
+| Cảnh báo không đọc được số lõi vật lý ở sandbox macOS | joblib tự dùng số lõi logic; RF và native pool đã được giới hạn 1; không làm đổi dữ liệu/metric |
+| Model tạo bởi phiên bản thư viện khác | Cài đúng requirements.txt và train lại, không nạp artefact không rõ nguồn |
+
+Giới hạn còn lại: chỉ train 3/33 nhóm hàng ở 54 cửa hàng, chưa có rolling-origin nhiều mùa,
+chưa khoảng dự báo, chưa kiểm thử RAM/tốc độ khi train toàn bộ 1.782 chuỗi,
+chưa đánh giá độ chính xác cấp SKU hay chi phí tồn kho thực.
