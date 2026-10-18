@@ -1,0 +1,47 @@
+{
+  "promotion": [
+    {
+      "promotion": "Có",
+      "count": 611329,
+      "mean": 1137.6937303133936,
+      "q1": 121.344,
+      "median": 373.0,
+      "q3": 1268.249,
+      "lowerfence": 0.0,
+      "upperfence": 2988.602
+    },
+    {
+      "promotion": "Không",
+      "count": 2389559,
+      "mean": 158.24668139364275,
+      "q1": 0.0,
+      "median": 3.0,
+      "q3": 54.0,
+      "lowerfence": 0.0,
+      "upperfence": 135.0
+    }
+  ],
+  "holiday": [
+    {
+      "holiday": false,
+      "count": 2754972,
+      "mean": 352.1305489402415,
+      "q1": 0.0,
+      "median": 11.0,
+      "q3": 193.0,
+      "lowerfence": 0.0,
+      "upperfence": 482.5
+    },
+    {
+      "holiday": true,
+      "count": 245916,
+      "mean": 421.01835394229494,
+      "q1": 0.0,
+      "median": 13.0,
+      "q3": 227.95275,
+      "lowerfence": 0.0,
+      "upperfence": 569.848
+    }
+  ],
+  "method": "Quartile và whisker 1.5 IQR tính trên toàn bộ dữ liệu; không lấy mẫu, không vẽ từng outlier."
+}

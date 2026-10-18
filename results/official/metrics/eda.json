@@ -1,0 +1,102 @@
+{
+  "source": {
+    "source": "Kaggle Store Sales – Time Series Forecasting; CSV do người dùng tải, schema đã kiểm tra tại chỗ",
+    "simulated": false,
+    "provenance": "Người dùng xác nhận đã tải từ Kaggle; không có checksum từ máy chủ để xác thực độc lập.",
+    "unit": "sales tổng theo cửa hàng × nhóm hàng × ngày; có thể có phần thập phân, không phải đơn vị SKU đồng nhất",
+    "original_file_sha256": "99a1b7f4241821df10fa71f23abdd71c634f71f901e3cab1400c0f0c583f862c",
+    "verified_files": [
+      "train.csv",
+      "stores.csv",
+      "holidays_events.csv"
+    ],
+    "modeling_scope": "Toàn bộ 54 cửa hàng, ba nhóm BEVERAGES, GROCERY I, PRODUCE; chọn trước khi xem metric"
+  },
+  "rows": 3000888,
+  "columns": [
+    "id",
+    "date",
+    "store_nbr",
+    "family",
+    "sales",
+    "onpromotion"
+  ],
+  "missing_values": {
+    "id": 0,
+    "date": 0,
+    "store_nbr": 0,
+    "family": 0,
+    "sales": 0,
+    "onpromotion": 0
+  },
+  "duplicate_rows": 0,
+  "duplicate_keys": 0,
+  "date_min": "2013-01-01",
+  "date_max": "2017-08-15",
+  "stores": 54,
+  "families": 33,
+  "sales_summary": {
+    "count": 3000888.0,
+    "mean": 357.77574911261894,
+    "std": 1101.9977213380002,
+    "min": 0.0,
+    "25%": 0.0,
+    "50%": 11.0,
+    "75%": 195.84725,
+    "max": 124717.0
+  },
+  "zero_sales_rows": 939130,
+  "zero_sales_pct": 31.29506999261552,
+  "missing_calendar_dates": [
+    "2013-12-25",
+    "2014-12-25",
+    "2015-12-25",
+    "2016-12-25"
+  ],
+  "interpretation": "Mô tả tương quan, không suy luận tác động nhân quả của khuyến mãi/ngày lễ.",
+  "promotion_summary": [
+    {
+      "promotion": "Có",
+      "count": 611329,
+      "mean": 1137.6937303133936,
+      "q1": 121.344,
+      "median": 373.0,
+      "q3": 1268.249,
+      "lowerfence": 0.0,
+      "upperfence": 2988.602
+    },
+    {
+      "promotion": "Không",
+      "count": 2389559,
+      "mean": 158.24668139364275,
+      "q1": 0.0,
+      "median": 3.0,
+      "q3": 54.0,
+      "lowerfence": 0.0,
+      "upperfence": 135.0
+    }
+  ],
+  "holiday_analysis": "Ghép đúng địa bàn; loại ngày transferred và Work Day.",
+  "holiday_summary": [
+    {
+      "holiday": false,
+      "count": 2754972,
+      "mean": 352.1305489402415,
+      "q1": 0.0,
+      "median": 11.0,
+      "q3": 193.0,
+      "lowerfence": 0.0,
+      "upperfence": 482.5
+    },
+    {
+      "holiday": true,
+      "count": 245916,
+      "mean": 421.01835394229494,
+      "q1": 0.0,
+      "median": 13.0,
+      "q3": 227.95275,
+      "lowerfence": 0.0,
+      "upperfence": 569.848
+    }
+  ]
+}
