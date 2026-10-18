@@ -20,7 +20,6 @@ model đã được tạo ra như thế nào. Không cần mọi thuật toán �
 Số mẫu train sau tạo đặc trưng là **258.552**, validation **4.860**, test **4.860**.
 Có **21 cột đầu vào trước one-hot**, tương ứng 19 biến số và 2 khóa phân loại;
 one-hot 54 cửa hàng + 3 nhóm tạo 57 biến, tổng cộng 76 cột model ở phạm vi này.
-Không lấy số liệu từ lần demo mô phỏng để điền vào bảng thực nghiệm Kaggle.
 
 ## 2. Cách giải thích đoạn mã train khi vấn đáp
 
@@ -61,7 +60,7 @@ Không cần đưa nguyên log dài vào thân báo cáo; chọn vài dòng minh
 Không kết luận model tốt chỉ vì loss train thấp: cần so validation/test, baseline naive và phạm vi dữ liệu.
 Không báo cáo “độ chính xác = 100 − WAPE”. Không bắt buộc tuning phải cải thiện mọi thuật toán.
 
-### Demo train trực tiếp trong buổi vấn đáp
+### Huấn luyện nhanh trên Kaggle khi vấn đáp (tùy chọn)
 
 Trong môi trường đã kích hoạt, tại thư mục gốc dự án:
 
@@ -72,8 +71,7 @@ python -m src.train --data data/raw/train.csv --output results/live_training --m
 Lệnh này thực sự fit ba thuật toán và tuning trên CSV Kaggle, nhưng chỉ dùng **một cửa hàng × một nhóm**
 và số cây/vòng giảm để trình diễn nhanh. Terminal in số mẫu, từng cấu hình, kết quả validation và test;
 log được ghi ở results/live_training/training.log. Không ghi đè results/official hoặc models/official.
-Sau demo nhỏ, quay lại kết quả chính thức 162 chuỗi để trình bày bảng so sánh trong báo cáo.
-Không thay số liệu chính thức bằng số liệu của live demo.
+Bảng so sánh trong báo cáo dùng kết quả chính thức 162 chuỗi, lưu tại `results/official`.
 Đã chạy thử lệnh trên: khoảng 4,91 giây trên máy thử nghiệm; máy khác có thể chậm hơn.
 
 ## 4. Những file nên nộp kèm

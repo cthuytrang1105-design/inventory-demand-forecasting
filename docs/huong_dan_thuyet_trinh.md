@@ -4,15 +4,15 @@
 | --- | --- | --- |
 | 2 phút | Vấn đề dự báo nhóm hàng và rủi ro tồn kho; phân biệt với ERP | Giới thiệu và phạm vi |
 | 3 phút | CSV Kaggle 3.000.888 dòng; phạm vi ML 54 cửa hàng × 3 nhóm; EDA, đơn vị sales | data/raw/train.metadata.json, trang Phân tích |
-| 4 phút | Lag/rolling, shift trước rolling, chia theo ngày, recursive holdout | feature_engineering.py; sơ đồ README; mốc run_manifest |
+| 4 phút | Lag/rolling, shift trước rolling, chia theo ngày, recursive holdout | feature_engineering.py; temporal_split.html; mốc run_manifest |
 | 4 phút | Chỉ dòng fit trong mã, log từng cấu hình; ba mô hình, random search và lý do chọn | training.log, training_convergence.html, tuning_summary.csv, trang Đánh giá |
-| 3 phút | Demo dự báo 7/30 ngày, tải CSV, nhập tồn kho | Trang Dự báo / Quản lý tồn kho |
+| 3 phút | Thao tác dự báo 7/30 ngày, tải CSV, nhập tồn kho | Trang Dự báo / Quản lý tồn kho |
 | 2 phút | Test, lưu/nạp model, hạn chế và hướng phát triển | docs/kiem_thu.md và JUnit XML |
 | 2 phút | Vấn đáp | Các câu hỏi dưới đây |
 
 Chuẩn bị trước: kích hoạt .venv, chạy các lệnh trong README, mở Streamlit, mở sẵn biểu đồ HTML
 và các CSV kết quả trong results/official. Giao diện tự chọn nguồn Kaggle khi có artefact chính thức.
-Không train lại toàn bộ ngay khi trình bày; chỉ demo một lượt fit nhỏ nếu còn thời gian.
+Chuẩn bị sẵn model trước buổi trình bày; có thể chạy một lượt fit nhỏ nếu còn thời gian.
 Lệnh train trực tiếp phạm vi một chuỗi có trong docs/minh_chung_huan_luyen.md,
 lưu riêng vào results/live_training và models/live_training.
 Phân biệt EDA toàn bộ 33 nhóm với model chỉ học 3 nhóm ở 54 cửa hàng.

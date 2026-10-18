@@ -2,7 +2,7 @@
 
 Ngày thực thi: **18/10/2026** (múi giờ người dùng Asia/Ho_Chi_Minh).
 Môi trường: macOS arm64, Python 3.9.6; NumPy 1.26.4, pandas 2.2.3,
-scikit-learn 1.6.1, Streamlit 1.49.1. Xem requirements-lock.txt và results/demo/run_manifest.json.
+scikit-learn 1.6.1, Streamlit 1.49.1. Xem requirements-lock.txt và results/official/run_manifest.json.
 
 ## Kết quả xác nhận
 
@@ -11,7 +11,7 @@ scikit-learn 1.6.1, Streamlit 1.49.1. Xem requirements-lock.txt và results/demo
 | `python -m pytest -q --junitxml=results/metrics/pytest.xml` | **41 passed**, 1 warning, 6,04 giây |
 | `python -m pip check` | No broken requirements found |
 | Kiểm tra AST mọi app/src/tests Python | Tất cả file phân tích cú pháp thành công |
-| `src.data_processing` trên data/demo/sales.csv | Demo 4.320 dòng hợp lệ; CSV Kaggle 3.000.888 dòng cũng không missing/trùng khóa, đã kiểm tra trước train |
+| `src.data_processing` trên data/raw/train.csv | CSV Kaggle 3.000.888 dòng không missing/trùng khóa, đã kiểm tra trước train |
 | `src.train` trên CSV Kaggle, không quick | 3 thuật toán ML + naive; 9 lượt random search, 3 cấu hình ML gốc; 54 cửa hàng × 3 nhóm, validation/test mỗi tập 4.860 quan sát |
 | Lưu/nạp model trong train | Dự báo trước/sau joblib khớp; đã tạo hai artefact evaluation/deployment |
 | `src.evaluate` từ test_predictions.csv | Kaggle: MAE 445,6333614054; RMSE 692,4955666579; WAPE 12,9036736764% |
@@ -65,13 +65,12 @@ Không có kiểm chứng tối ưu chi phí tồn kho hoặc khả năng tránh
 
 Để tái lập: làm theo README, xem `results/metrics/pytest.xml` và
 `results/official/metrics/comparison.csv`, `tuning.json`, `tuning_summary.csv`, `test_predictions.csv`.
-Bản demo và artefact mô phỏng cũ vẫn giữ riêng, không dùng số đo demo thay cho Kaggle.
 
 ## Kiểm chứng bổ sung sau khi hoàn tất thực nghiệm Kaggle
 
 Bộ pytest cuối: **41 passed**, 0 failures, 0 errors, 0 skipped; JUnit 6.035 giây. Một warning joblib như đã mô tả.
 
-Lần train chính thức không quick, 160 cây RF / 180 vòng HGB, 3 lượt random search mỗi thuật toán: tổng perf_counter **1151.051 giây**. Chọn **RandomForest** theo validation.
+Lần train chính thức không quick, 160 cây RF / 180 vòng HGB, 3 lượt random search mỗi thuật toán. Chọn **RandomForest** theo validation; tổng thời gian từng lần chạy ghi trong `run_manifest.json`.
 
 Các kiểm tra sau đã thực sự chạy:
 
@@ -81,4 +80,4 @@ Các kiểm tra sau đã thực sự chạy:
 - Streamlit AppTest trên CSV thật 3.000.888 dòng: nguồn mặc định Kaggle; mở đủ 6 trang không exception/error; nhấn dự báo 30 ngày trả 30 dòng; gửi biểu mẫu tồn kho hợp lệ trả 3 metric. Lưu tại results/official/metrics/app_verification.json.
 - Chưa kiểm tra hình ảnh bằng trình duyệt thật. HTTP 200 ghi ở bảng trên là kiểm tra server cục bộ ở lần xây dựng trước; kiểm chứng dữ liệu Kaggle lần này dùng AppTest.
 
-Lệnh demo train trực tiếp một chuỗi Kaggle đã chạy thành công, tổng **4.906 giây**, nguồn simulated=False; log/artefact lưu riêng ở results/live_training và models/live_training. Kết quả demo nhỏ không thay thế kết quả chính thức 162 chuỗi.
+Lệnh huấn luyện nhanh một chuỗi Kaggle đã chạy thành công trong khoảng **4,91 giây**; log/artefact lưu riêng ở `results/live_training` và `models/live_training`. Đây là kiểm tra phạm vi nhỏ; bảng metric báo cáo dùng lần chạy chính thức 162 chuỗi.

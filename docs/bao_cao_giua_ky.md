@@ -36,7 +36,6 @@ do hết hàng. Không diễn giải sales thành doanh thu tiền tệ.
 ## 5. Giới thiệu dataset
 
 Nguồn lần chạy này: **Kaggle Store Sales – Time Series Forecasting; CSV do người dùng tải, schema đã kiểm tra tại chỗ**.
-Đánh dấu mô phỏng: **False**.
 CSV đã kiểm tra thực tế có 3,000,888 dòng; dùng 272,808 dòng
 cho 162 chuỗi. Cột thực tế: id, date, store_nbr, family, sales, onpromotion.
 Đơn vị: sales tổng theo cửa hàng × nhóm hàng × ngày; có thể có phần thập phân, không phải đơn vị SKU đồng nhất.
@@ -49,7 +48,7 @@ Phạm vi lần chạy: **54 cửa hàng** và các nhóm
 EDA toàn bộ CSV: 54 cửa hàng, 33 nhóm hàng, từ 2013-01-01 đến 2017-08-15. Phân tích lễ: Ghép đúng địa bàn; loại ngày transferred và Work Day.
 Phạm vi mô hình có thể nhỏ hơn EDA; số liệu test chỉ đại diện các chuỗi thực sự được train.
 Các tệp chính thức cần tải sau khi đăng nhập
-và chấp thuận điều khoản; README có lệnh huấn luyện riêng, tách artefact demo/official.
+và chấp thuận điều khoản; xem README để chạy toàn bộ quy trình trên dữ liệu Kaggle.
 
 ## 6. Phân tích và tiền xử lý dữ liệu
 
@@ -249,12 +248,12 @@ Artefact `evaluation_model.joblib` chỉ fit đến trước test để tái hi�
 đánh giá độc lập, `model.joblib` được refit trên toàn bộ lịch sử để dự báo mới. Không dùng bản
 refit này để báo lại test. SHA-256 của CSV và danh sách chuỗi nằm trong run_manifest.json.
 
-## 11. Mô tả hệ thống demo
+## 11. Mô tả ứng dụng
 
 Streamlit gồm sáu trang: Tổng quan, Phân tích dữ liệu, Dự báo nhu cầu, Quản lý tồn kho,
 Đánh giá mô hình, Giới thiệu hệ thống. Người dùng lọc cửa hàng/nhóm hàng, chọn 7 hoặc 30 ngày,
 xem bảng/biểu đồ và tải CSV. Giao diện chỉ nạp model đã train, không tự kích hoạt huấn luyện.
-Nguồn mô phỏng được hiển thị rõ. Đầu vào thiếu model hoặc CSV sai được thông báo.
+Đầu vào thiếu model hoặc CSV sai được thông báo.
 Pipeline CLI `src.predict` nhận CSV lịch sử mới có sales đã biết, tiền xử lý như train,
 nạp artefact và dự báo từ ngày sau ngày chốt cuối. Không hỗ trợ chuỗi cửa hàng/nhóm hàng chưa học.
 

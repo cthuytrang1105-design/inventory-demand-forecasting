@@ -15,14 +15,13 @@ Yêu cầu triển khai trực tiếp lấy từ văn bản người dùng dán.
 | Pipeline dữ liệu mới → kết quả | python -m src.predict --input …; đọc CSV, validate, feature, model, CSV đầu ra | Đã chạy CLI, có test E2E |
 | Dự báo 7/30 ngày không leakage | Recursive state; feature parity/leakage tests; AppTest | Đã kiểm thử |
 | Tồn kho rõ nguồn và đơn vị | Nhập thủ công, xác nhận đơn vị, Q=max(0,D+S−C−I) | Đã kiểm thử; không tối ưu chi phí |
-| Demo Streamlit | app.py có 6 trang tiếng Việt; AppTest và HTTP 200 | Đã chạy; chưa kiểm tra hình ảnh trình duyệt |
+| Giao diện Streamlit | app.py có 6 trang tiếng Việt; AppTest và HTTP 200 | Đã chạy; chưa kiểm tra hình ảnh trình duyệt |
 | Báo cáo / phân công / mã nguồn / README | docs/bao_cao_giua_ky.md, phan_cong_nhiem_vu.md, src, README.md | Đã tạo; tên/đóng góp để nhóm điền |
-| README cài và chạy | Lệnh demo/train/evaluate/predict/EDA/report/pytest/Streamlit | Đã chạy trên macOS Python 3.9.6 |
+| README cài và chạy | Cài đặt, dữ liệu Kaggle, kiểm tra CSV/EDA/train/evaluate/verify/predict/report/pytest/Streamlit | Đã chạy trên macOS Python 3.9.6 |
 | Dataset chính thức | train.csv 3.000.888 dòng, stores.csv, holidays_events.csv; SHA-256 trong metadata | Đã kiểm tra schema, missing và trùng; EDA toàn CSV |
 | Thể hiện rõ quá trình train | .fit trong tuning.py, timestamp từng lượt, tham số đầy đủ, số mẫu, loss chẩn đoán, snapshot mã | training.log, training_events.jsonl, training_history.csv; mục 8.1–8.2 báo cáo |
 
 HGB là lựa chọn boosting tích hợp sklearn thay LightGBM/XGBoost để giảm phụ thuộc cài đặt.
 Đây là ba thuật toán ML thực sự; không tính naive là thuật toán được train.
-Không chuyển kết quả mô phỏng thành kết quả dataset chính thức.
 Phân biệt EDA 54 cửa hàng × 33 nhóm với ML 54 cửa hàng × 3 nhóm: BEVERAGES, GROCERY I, PRODUCE.
-Bản báo cáo mô phỏng cũ được giữ riêng ở docs/bao_cao_demo.md; báo cáo chính dùng results/official.
+Báo cáo chính dùng artefact trong `results/official`; lệnh chạy đầy đủ nằm ở [README](../README.md#3-chạy-toàn-bộ-chương-trình-từ-đầu).
