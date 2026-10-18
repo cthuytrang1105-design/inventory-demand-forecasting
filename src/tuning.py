@@ -10,6 +10,7 @@ from src.evaluate import join_actual, metrics
 from src.feature_engineering import FEATURES
 from src.models import build_model
 from src.predict import recursive_forecast
+from src.training_evidence import training_diagnostics
 
 SEARCH_SPACES = {
     "Ridge": {"model__alpha": [0.1, 1.0, 10.0, 100.0, 1000.0]},
@@ -28,7 +29,8 @@ def score_key(row):
             row["inference_seconds"])
 
 
-def search_model(name, train_features, history, validation, trials=3, quick=False):
+def search_model(name, train_features, history, validation, trials=3, quick=False, journal=None,
+                 diagnostic_history=None):
     if trials < 1:
         raise ValueError("Số lượt tuning phải >= 1.")
     candidates = [({}, "before_tuning")]
@@ -39,6 +41,10 @@ def search_model(name, train_features, history, validation, trials=3, quick=Fals
     horizon = int((validation.date.max() - history.date.max()).days)
     for trial, (params, stage) in enumerate(candidates):
         model = build_model(name, params, quick)
+        resolved = model.named_steps["model"].get_params(deep=False) if model is not None else {}
+        if journal:
+            journal.emit("trial_started", model=name, trial=trial, stage=stage, params=params,
+                         resolved_params=resolved, train_rows=len(train_features), horizon=horizon)
         started = time.perf_counter()
         if model is not None:
             model.fit(train_features[FEATURES], train_features.sales)
@@ -47,11 +53,17 @@ def search_model(name, train_features, history, validation, trials=3, quick=Fals
         pred = recursive_forecast(model, history, horizon, name)
         inference_seconds = time.perf_counter() - started
         matched = join_actual(validation, pred)
+        diagnostic, progress = training_diagnostics(model, train_features, FEATURES, name, trial)
+        if diagnostic_history is not None:
+            diagnostic_history.extend(progress)
         record = {"model": name, "trial": trial, "stage": stage, "params": params,
+                  "resolved_params": resolved, **diagnostic,
                   **metrics(matched.sales, matched.prediction),
                   "train_seconds": fit_seconds, "inference_seconds": inference_seconds,
                   "prediction_rows": len(pred)}
         records.append(record)
+        if journal:
+            journal.emit("trial_completed", **record)
         if best is None or score_key(record) < score_key(best):
             best = record
     return best, records

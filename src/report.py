@@ -1,6 +1,7 @@
 """Sinh phần kết quả báo cáo từ artefact thực thi, không tự điền số liệu giả."""
 import argparse
 import json
+import os
 from pathlib import Path
 import pandas as pd
 
@@ -19,9 +20,136 @@ def generate_report(results="results/demo", output="docs/bao_cao_giua_ky.md"):
     comparison = pd.read_csv(root / "metrics/comparison.csv")
     summary = pd.read_csv(root / "metrics/tuning_summary.csv")
     selected = comparison[comparison.selected].iloc[0]
+    naive = comparison[comparison.model == "SeasonalNaive"].iloc[0]
+    test_analysis = ""
+    if pd.notna(naive.test_WAPE_pct) and naive.test_WAPE_pct > 0 and pd.notna(selected.test_WAPE_pct):
+        relative = 100 * (naive.test_WAPE_pct - selected.test_WAPE_pct) / naive.test_WAPE_pct
+        direction = "giảm" if relative >= 0 else "tăng"
+        test_analysis = (f"So với seasonal naive có test WAPE {naive.test_WAPE_pct:.4f}%, mô hình được chọn "
+                         f"có WAPE {direction} {abs(relative):.2f}% theo tỷ lệ tương đối. Đây là mức thay đổi WAPE, "
+                         "không phải accuracy. Kết luận chỉ áp dụng cho phạm vi và holdout của lần chạy này.")
+    test_winner = comparison.loc[comparison.test_MAE.idxmin(), "model"]
+    test_analysis += (f" Thuật toán có MAE test thấp nhất trong bảng là {test_winner}. "
+                      "Không dùng kết quả test để thay đổi model hoặc tham số đã chọn bằng validation; "
+                      "nếu thứ hạng khác nhau, cần công bố khác biệt và kiểm tra thêm bằng backtest trong nghiên cứu tiếp theo.")
     table = markdown_table(comparison[["model", "validation_WAPE_pct", "test_MAE", "test_RMSE", "test_WAPE_pct", "train_seconds", "inference_seconds"]])
     splits = markdown_table(pd.DataFrame([{"Tập": k, **v} for k, v in manifest["split"].items()]))
     source = manifest["metadata"]
+    result_link = Path(os.path.relpath(root, Path(output).parent)).as_posix()
+    eda_path = root / "metrics/eda.json"
+    eda = json.loads(eda_path.read_text(encoding="utf-8")) if eda_path.exists() else None
+    eda_note = (f"EDA toàn bộ CSV: {eda['stores']} cửa hàng, {eda['families']} nhóm hàng, "
+                f"từ {eda['date_min']} đến {eda['date_max']}. "
+                f"Phân tích lễ: {eda['holiday_analysis']}" if eda else "Chưa xuất EDA cho lần chạy này.")
+    eda_analysis = ""
+    if eda and "zero_sales_pct" in eda:
+        distribution = pd.DataFrame(eda.get("promotion_summary", []))
+        holiday_distribution = pd.DataFrame(eda.get("holiday_summary", []))
+        eda_analysis = f"""
+### 6.1. Kết quả EDA trên toàn bộ CSV
+
+Sales trung bình toàn CSV: {eda['sales_summary']['mean']:.4f}; median: {eda['sales_summary']['50%']:.4f};
+độ lệch chuẩn: {eda['sales_summary']['std']:.4f}; lớn nhất: {eda['sales_summary']['max']:.4f}.
+Có {eda['zero_sales_rows']:,} quan sát sales=0 ({eda['zero_sales_pct']:.4f}%). Phân phối lệch phải mạnh;
+mean lớn hơn median nhiều, do nhiều nhóm có mức bán nhỏ/0 và một số nhóm có sales rất lớn.
+Không coi mọi sales=0 là dữ liệu lỗi hoặc nhu cầu tiềm ẩn bằng 0 vì không có cột trạng thái hết hàng.
+Những ngày không có quan sát trong toàn CSV: {', '.join(eda['missing_calendar_dates']) or 'không có'}.
+
+Phân phối sales theo khuyến mãi, tính trên tất cả các quan sát:
+
+{markdown_table(distribution) if not distribution.empty else 'Chưa có thông tin khuyến mãi.'}
+
+Phân phối sales theo ngày lễ/sự kiện đã ghép đúng địa bàn:
+
+{markdown_table(holiday_distribution) if not holiday_distribution.empty else 'Chưa có dữ liệu lễ.'}
+
+Các khác biệt mô tả này có thể đồng thời chịu ảnh hưởng của quy mô nhóm hàng/cửa hàng và thời gian;
+không kết luận tác động nhân quả. Các biến trên chưa được dùng trong mô hình dự báo hiện tại.
+Các thống kê tổng theo ngày/cửa hàng/nhóm và trung bình theo thứ/tháng nằm trong
+`{root}/metrics/eda_*.csv`; đồ thị tương ứng trong figures/eda_*.html.
+Box plot xuất quartile/whisker từ toàn bộ dữ liệu thay vì đưa hàng triệu điểm vào HTML.
+"""
+    trial_count = len(json.loads((root / "metrics/tuning.json").read_text(encoding="utf-8"))["records"])
+    evidence = ""
+    if (root / "training_events.jsonl").exists():
+        events = [json.loads(line) for line in (root / "training_events.jsonl").read_text(encoding="utf-8").splitlines()]
+        fit_event = next(e for e in events if e["event"] == "trial_completed" and e["model"] == "Ridge")
+        selected_event = next(e for e in events if e["event"] == "model_selected_before_test")
+        test_event = next(e for e in events if e["event"] == "holdout_evaluated")
+        feature_count = manifest.get("feature_count_before_encoding", "xem mã nguồn")
+        command = (f"python -m src.train --data {source['data_path']} --output {root} "
+                   f"--model-dir {Path(manifest['model_path']).parent} --horizon {manifest['horizon']} "
+                   f"--trials {manifest.get('trials', 3)}")
+        if manifest.get("quick"):
+            command += " --quick"
+        if manifest.get("max_series"):
+            command += f" --max-series {manifest['max_series']}"
+        for flag, values in manifest.get("filters", {}).items():
+            if values:
+                import shlex
+                command += " --" + flag + " " + " ".join(shlex.quote(str(v)) for v in values)
+        evidence = f"""
+### 8.1. Minh chứng quá trình huấn luyện đã thực thi
+
+Chương trình tạo **{manifest['train_feature_rows']:,} mẫu train** sau warm-up,
+**{feature_count} cột đặc trưng trước one-hot** (2 khóa phân loại + các biến lịch/quá khứ).
+Danh sách đặc trưng đầy đủ và SHA-256 dữ liệu/mã nguồn ghi trong run_manifest.json.
+Lệnh tái lập đúng phạm vi lần chạy:
+
+```bash
+{command}
+```
+
+Đoạn mã thật thực hiện fit, tại `src/tuning.py`:
+
+```python
+model = build_model(name, params, quick)
+model.fit(train_features[FEATURES], train_features.sales)
+pred = recursive_forecast(model, history, horizon, name)
+matched = join_actual(validation, pred)
+record = metrics(matched.sales, matched.prediction)
+```
+
+Đoạn trích được rút gọn để trình bày; mã chạy đầy đủ còn đo thời gian, ghi nhật ký,
+lưu tham số và chẩn đoán. Scaler/encoder được fit cùng model trong sklearn Pipeline.
+Đây là việc học tham số từ X_train/y_train, khác với chỉ tải model đã huấn luyện để predict.
+Ridge giải hồi quy có phạt L2; RF fit nhiều cây; HGB học tuần tự các vòng boosting.
+Không có yêu cầu mọi thuật toán phải in epoch như mạng nơ-ron.
+
+Nhật ký thực thi có timestamp UTC, không phải log minh họa:
+
+| Bước thực thi | Timestamp UTC | Bằng chứng |
+| --- | --- | --- |
+| Fit Ridge cấu hình gốc hoàn tất | {fit_event['timestamp_utc']} | {fit_event['train_seconds']:.6f} giây; validation WAPE {fit_event['WAPE_pct']:.4f}% |
+| Khóa lựa chọn mô hình | {selected_event['timestamp_utc']} | {selected_event['model']} theo validation |
+| Lần đánh giá test đầu tiên | {test_event['timestamp_utc']} | Sau khi lựa chọn đã khóa |
+
+Có **{trial_count} cấu hình được chấm** gồm cả seasonal naive; seasonal naive không fit.
+Mỗi cấu hình ML ghi cặp trial_started/trial_completed, số mẫu, tham số đầy đủ,
+train_seconds, inference_seconds và MAE/RMSE/WAPE validation. Không có nhãn test trong fit/tuning.
+
+Các tệp nộp kèm để giảng viên đối chiếu:
+
+- [training.log]({result_link}/training.log): đầu ra thật của quá trình chạy.
+- [training_events.jsonl]({result_link}/training_events.jsonl): dấu vết từng bước với timestamp.
+- [run_manifest.json]({result_link}/run_manifest.json): phạm vi, mốc chia, môi trường, đặc trưng, SHA-256.
+- [tuning.csv]({result_link}/metrics/tuning.csv): từng cấu hình, tham số đầy đủ, kết quả đo thật.
+- [source_snapshot]({result_link}/source_snapshot): mã Python và requirements tại thời điểm train.
+
+### 8.2. Hình và bảng minh họa quá trình train
+
+1. [Sơ đồ chia thời gian]({result_link}/figures/temporal_split.html): train đi trước validation/test.
+2. [Đồ thị HGB theo vòng boosting]({result_link}/figures/training_convergence.html): RMSE in-sample trên
+   tối đa 5.000 mẫu train cách đều, cố định cho mọi cấu hình. Dùng chẩn đoán việc học,
+   **không** coi loss train là chất lượng dự báo trên dữ liệu chưa thấy.
+3. [Các lượt tuning và WAPE validation]({result_link}/figures/tuning_validation.html): mỗi điểm là một
+   model fit độc lập, không gọi các điểm này là epoch hoặc so như một chuỗi train liên tục.
+4. Bảng trước/sau tuning ở mục 9 và bảng metric test ở mục 10.
+
+Khi chuyển sang Word/PDF, chèn ảnh chụp các đồ thị hoặc trang Đánh giá mô hình đã chạy,
+kèm chú thích nguồn tệp, phạm vi dữ liệu và đơn vị trục. Không tạo ảnh log giả.
+Giữ file HTML/CSV/log trong gói mã nguồn để người chấm kiểm chứng.
+"""
     simulated = source.get("simulated", False)
     dataset_note = (
         "Workspace chưa được cung cấp CSV Kaggle ở thời điểm triển khai. Lần chạy này dùng mô phỏng, "
@@ -85,9 +213,13 @@ CSV đã kiểm tra thực tế có {quality['rows']:,} dòng; dùng {quality['s
 cho {source['series_count']} chuỗi. Cột thực tế: {', '.join(quality['columns'])}.
 Đơn vị: {source['unit']}.
 
-Bộ dữ liệu chính thức dự kiến là [Kaggle Store Sales](https://www.kaggle.com/competitions/store-sales-time-series-forecasting/data).
+Bộ dữ liệu tham chiếu là [Kaggle Store Sales](https://www.kaggle.com/competitions/store-sales-time-series-forecasting/data).
 Tài liệu nguồn xác nhận train.csv gồm cửa hàng, nhóm hàng, sales và onpromotion;
 sales có thể có phần thập phân. {dataset_note}
+Phạm vi lần chạy: **{len({pair[0] for pair in manifest['series']})} cửa hàng** và các nhóm
+**{', '.join(sorted({pair[1] for pair in manifest['series']}))}**.
+{eda_note}
+Phạm vi mô hình có thể nhỏ hơn EDA; số liệu test chỉ đại diện các chuỗi thực sự được train.
 Các tệp chính thức cần tải sau khi đăng nhập
 và chấp thuận điều khoản; README có lệnh huấn luyện riêng, tách artefact demo/official.
 
@@ -95,7 +227,7 @@ và chấp thuận điều khoản; README có lệnh huấn luyện riêng, tá
 
 Thiếu theo cột trước xử lý: `{json.dumps(quality['missing_values'], ensure_ascii=False)}`.
 Số dòng trùng: {quality['duplicate_rows']}; trùng khóa: {quality['duplicate_keys']}.
-Sales trung bình: {quality['sales_summary']['mean']:.4f}, nhỏ nhất:
+Sales trong phạm vi mô hình có trung bình: {quality['sales_summary']['mean']:.4f}, nhỏ nhất:
 {quality['sales_summary']['min']:.4f}, lớn nhất: {quality['sales_summary']['max']:.4f}.
 
 Chương trình từ chối ngày không hợp lệ, khóa trùng, sales thiếu/âm/vô hạn, family rỗng và
@@ -111,6 +243,8 @@ trung bình theo thứ/tháng và phân phối khi có/không khuyến mãi. Bi�
 không chứng minh khuyến mãi gây tăng nhu cầu. Biểu đồ lễ chỉ sinh khi thực sự cung cấp
 holidays_events.csv; nếu có stores.csv thì ghép National/Regional/Local đúng địa bàn,
 loại ngày transferred và Work Day. Không tự gán lịch lễ ngoài dữ liệu.
+
+{eda_analysis}
 
 ## 7. Phương pháp Machine Learning
 
@@ -137,6 +271,8 @@ dự báo đệ quy từ cuối train; test từ cuối train+validation. Không
 trong holdout để tạo lag cho ngày kế tiếp. Các dự báo âm được chặn tại 0 cho mọi mô hình.
 Mô hình tốt nhất được khóa trước khi chạy test. Test có ground truth được tách từ lịch sử;
 test.csv Kaggle không có sales và không dùng làm nhãn đánh giá.
+
+{evidence}
 
 ## 9. Tối ưu siêu tham số
 
@@ -170,7 +306,10 @@ không gồm đọc đĩa/nạp model. Tổng lần chạy: {manifest['total_sec
 
 Mô hình được chọn: **{manifest['selected_model']}**. {manifest['selection_reason']}
 Tham số: `{json.dumps(manifest['best_params'], ensure_ascii=False)}`.
+Tham số estimator đầy đủ (bao gồm mặc định):
+`{json.dumps(manifest.get('resolved_selected_params', manifest['best_params']), ensure_ascii=False)}`.
 Test MAE {selected.test_MAE:.4f}, RMSE {selected.test_RMSE:.4f}, WAPE {selected.test_WAPE_pct:.4f}%.
+{test_analysis}
 Đây là kết quả đo, không phải cam kết độ chính xác khi vận hành.
 Biểu đồ test: `{root}/figures/test_actual_vs_forecast.html`; sai số từng chuỗi: metrics/test_by_series.csv.
 
@@ -211,7 +350,7 @@ Quick mode tối đa 12 chuỗi nếu không ghi --max-series; kết quả chỉ
 
 ## 14. Hướng phát triển
 
-Thu thập CSV chính thức, đối chiếu đơn vị và bổ sung rolling-origin backtest; thử LightGBM/XGBoost
+Mở rộng số nhóm hàng được train, đối chiếu đơn vị và bổ sung rolling-origin backtest; thử LightGBM/XGBoost
 trong cùng protocol; kết hợp lịch lễ theo địa bàn và kế hoạch khuyến mãi đã biết;
 đánh giá theo từng nhóm hàng/horizon; bổ sung khoảng dự báo và theo dõi drift.
 Để tối ưu tồn kho thực sự, cần dữ liệu tồn theo SKU, phân phối lead time, chi phí và ràng buộc vận hành.

@@ -1,11 +1,13 @@
 """Huấn luyện, random search, chọn theo validation, test giữ riêng, lưu artefact."""
 import argparse
+from contextlib import redirect_stdout
 from datetime import datetime, timezone
 import importlib.metadata
 import json
 from pathlib import Path
 import platform
 import time
+import sys
 import joblib
 import pandas as pd
 from threadpoolctl import threadpool_limits
@@ -16,16 +18,34 @@ from src.models import build_model
 from src.predict import forecast, load_artifact, recursive_forecast
 from src.tuning import SEARCH_SPACES, score_key, search_model
 from src.utils import file_hash, read_metadata, write_json
+from src.training_evidence import Tee, TrainingJournal, export_training_figures, snapshot_source
 
 MODEL_NAMES = ["SeasonalNaive", "Ridge", "RandomForest", "HistGradientBoosting"]
 
 
 def train_run(data_path, output="results/demo", model_dir="models/demo", horizon=30,
               trials=3, quick=False, max_series=None, stores=None, families=None):
+    Path(output).mkdir(parents=True, exist_ok=True)
+    with (Path(output) / "training.log").open("w", encoding="utf-8") as log:
+        with redirect_stdout(Tee(sys.stdout, log)):
+            journal = TrainingJournal(output)
+            journal.emit("run_started", data_path=str(data_path), output=str(output),
+                         model_dir=str(model_dir), horizon=horizon, trials=trials, quick=quick,
+                         max_series=max_series, stores=stores, families=families)
+            try:
+                return _train_run(data_path, output, model_dir, horizon, trials, quick,
+                                  max_series, stores, families, journal)
+            except Exception as exc:
+                journal.emit("run_failed", error_type=type(exc).__name__, error=str(exc))
+                raise
+
+
+def _train_run(data_path, output, model_dir, horizon, trials, quick, max_series, stores, families, journal):
     output, model_dir = Path(output), Path(model_dir)
     for folder in (output / "metrics", output / "figures", model_dir):
         folder.mkdir(parents=True, exist_ok=True)
     started_run = time.perf_counter()
+    source_hashes = snapshot_source(output)
     raw = pd.read_csv(data_path)
     quality = quality_summary(raw)
     df = load_sales(data_path)
@@ -43,6 +63,10 @@ def train_run(data_path, output="results/demo", model_dir="models/demo", horizon
         selected = df[KEYS].drop_duplicates().sort_values(KEYS).head(max_series)
         df = df.merge(selected, on=KEYS, validate="many_to_one").sort_values([*KEYS, "date"])
     train, validation, test = split_dates(df, horizon)
+    split = {name: {"start": str(part.date.min().date()), "end": str(part.date.max().date()), "rows": len(part)}
+             for name, part in [("train", train), ("validation", validation), ("test", test)]}
+    journal.emit("data_prepared", raw_rows=quality["rows"], selected_rows=len(df),
+                 series_count=len(df[KEYS].drop_duplicates()), split=split)
     # Mỗi chuỗi phải tồn tại đủ lịch sử và có cùng mốc chốt ở mọi origin.
     for partition in (train, pd.concat([train, validation]), df):
         for key, group in partition.groupby(KEYS):
@@ -55,15 +79,20 @@ def train_run(data_path, output="results/demo", model_dir="models/demo", horizon
     train_features = train_features[train_features.is_observed].dropna(subset=FEATURES)
     if train_features.empty:
         raise ValueError("Không còn mẫu train sau tạo lag.")
-    tuning_records, best_models = [], []
+    journal.emit("features_ready", train_feature_rows=len(train_features), features=FEATURES,
+                 validation_labels_used_for_fit=False, test_labels_used_for_selection=False)
+    tuning_records, best_models, diagnostic_history = [], [], []
     # Giới hạn native BLAS/OpenMP để laptop ổn định và timing có thể so sánh.
     with threadpool_limits(limits=1):
         for name in MODEL_NAMES:
             print(f"Huấn luyện / tuning {name}...", flush=True)
-            best, records = search_model(name, train_features, train, validation, trials, quick)
+            best, records = search_model(name, train_features, train, validation, trials, quick,
+                                         journal, diagnostic_history)
             tuning_records.extend(records)
             best_models.append(best)
         selected = min(best_models, key=score_key)
+        journal.emit("model_selected_before_test", model=selected["model"], params=selected["params"],
+                     validation_WAPE_pct=selected["WAPE_pct"], validation_MAE=selected["MAE"])
         print(f"Chọn bằng validation: {selected['model']} ({selected['WAPE_pct']}% WAPE)", flush=True)
         trainval = pd.concat([train, validation], ignore_index=True)
         trainval_features = make_features(trainval)
@@ -77,6 +106,7 @@ def train_run(data_path, output="results/demo", model_dir="models/demo", horizon
         for best in best_models:
             name = best["model"]
             model = build_model(name, best["params"], quick)
+            journal.emit("holdout_refit_started", model=name, trainval_rows=len(trainval_features))
             started = time.perf_counter()
             if model is not None:
                 model.fit(trainval_features[FEATURES], trainval_features.sales)
@@ -85,6 +115,9 @@ def train_run(data_path, output="results/demo", model_dir="models/demo", horizon
             pred = recursive_forecast(model, trainval, horizon, name)
             inference_seconds = time.perf_counter() - started
             matched = join_actual(test, pred)
+            journal.emit("holdout_evaluated", model=name, test_rows=len(matched),
+                         **metrics(matched.sales, matched.prediction),
+                         train_seconds=fit_seconds, inference_seconds=inference_seconds)
             all_test.append(matched.assign(model=name))
             comparison.append({"model": name, "selected": name == selected["model"],
                                **{f"validation_{k}": best[k] for k in ["MAE", "RMSE", "WAPE_pct"]},
@@ -110,6 +143,7 @@ def train_run(data_path, output="results/demo", model_dir="models/demo", horizon
         observed = full_features[full_features.is_observed].dropna(subset=FEATURES)
         started = time.perf_counter()
         if final_model is not None:
+            journal.emit("deployment_refit_started", model=selected["model"], rows=len(observed))
             final_model.fit(observed[FEATURES], observed.sales)
         deployment_fit = time.perf_counter() - started
         artifact = {"format_version": 1, "model_name": selected["model"], "model": final_model,
@@ -121,13 +155,15 @@ def train_run(data_path, output="results/demo", model_dir="models/demo", horizon
         future = forecast(reloaded, df, 7)
         original = forecast(artifact, df, 7)
         pd.testing.assert_frame_equal(future, original)
+        journal.emit("model_saved_and_reload_verified", model_path=str(model_dir / "model.joblib"),
+                     comparison_rows=len(future))
         future.to_csv(output / "forecast_7_days.csv", index=False)
     pd.DataFrame(comparison).to_csv(output / "metrics/comparison.csv", index=False)
     pd.concat(all_test, ignore_index=True).to_csv(output / "metrics/all_models_test_predictions.csv", index=False)
     write_json(output / "metrics/tuning.json", {"search_spaces": SEARCH_SPACES,
                "strategy": "ParameterSampler + chronological single-origin recursive validation; default also eligible",
                "trials_per_model": trials, "records": tuning_records})
-    json_rows = [{k: json.dumps(v, ensure_ascii=False) if k == "params" else v for k, v in row.items()} for row in tuning_records]
+    json_rows = [{k: json.dumps(v, ensure_ascii=False) if isinstance(v, dict) else v for k, v in row.items()} for row in tuning_records]
     pd.DataFrame(json_rows).to_csv(output / "metrics/tuning.csv", index=False)
     summary = []
     for best in best_models:
@@ -136,6 +172,7 @@ def train_run(data_path, output="results/demo", model_dir="models/demo", horizon
                         "before_WAPE_pct": before["WAPE_pct"], "best_WAPE_pct": best["WAPE_pct"],
                         "best_params": json.dumps(best["params"], ensure_ascii=False)})
     pd.DataFrame(summary).to_csv(output / "metrics/tuning_summary.csv", index=False)
+    export_training_figures(output, tuning_records, diagnostic_history, split)
     quality.update({"selected_rows": len(df), "inserted_calendar_days": int((~full_features.is_observed).sum()),
                     "excluded_warmup_observed_rows": len(df) - len(observed),
                     "sales_summary": {k: float(v) for k, v in df.sales.describe().items()}})
@@ -148,8 +185,12 @@ def train_run(data_path, output="results/demo", model_dir="models/demo", horizon
                 "quick": quick, "max_series": max_series, "horizon": horizon, "seed": 42,
                 "selected_model": selected["model"], "best_params": selected["params"],
                 "selection_reason": reason, "series": series,
-                "split": {name: {"start": str(part.date.min().date()), "end": str(part.date.max().date()), "rows": len(part)}
-                          for name, part in [("train", train), ("validation", validation), ("test", test)]},
+                "split": split, "features": FEATURES, "feature_count_before_encoding": len(FEATURES),
+                "filters": {"stores": stores, "families": families}, "trials": trials,
+                "resolved_selected_params": selected["resolved_params"],
+                "training_log": str(output / "training.log"),
+                "training_events": str(output / "training_events.jsonl"),
+                "source_sha256": source_hashes,
                 "train_feature_rows": len(train_features), "test_untouched_during_selection": True,
                 "deployment_refit_seconds": deployment_fit, "total_seconds": time.perf_counter() - started_run,
                 "model_path": str(model_dir / "model.joblib"),
@@ -160,6 +201,8 @@ def train_run(data_path, output="results/demo", model_dir="models/demo", horizon
                                 "Một origin validation và một origin test, chưa rolling-origin nhiều giai đoạn.",
                                 "Artefact triển khai refit trên cả test sau khi test đã hoàn tất; tái hiện test bằng evaluation_model."]}
     write_json(output / "run_manifest.json", manifest)
+    journal.emit("run_completed", selected_model=selected["model"], total_seconds=manifest["total_seconds"],
+                 manifest_path=str(output / "run_manifest.json"))
     print(pd.DataFrame(comparison).to_string(index=False), flush=True)
     return manifest
 
