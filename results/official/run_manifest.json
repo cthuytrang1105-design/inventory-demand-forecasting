@@ -1,5 +1,5 @@
 {
-  "created_utc": "2026-10-18T05:00:47.708784+00:00",
+  "created_utc": "2026-10-18T07:16:00.749657+00:00",
   "metadata": {
     "source": "Kaggle Store Sales – Time Series Forecasting; CSV do người dùng tải, schema đã kiểm tra tại chỗ",
     "simulated": false,
@@ -779,8 +779,8 @@
   },
   "train_feature_rows": 258552,
   "test_untouched_during_selection": true,
-  "deployment_refit_seconds": 152.7314171669999,
-  "total_seconds": 1166.925481584,
+  "deployment_refit_seconds": 167.15426812500004,
+  "total_seconds": 1253.364551958,
   "model_path": "models/official/model.joblib",
   "evaluation_model_path": "models/official/evaluation_model.joblib",
   "assumptions": [
