@@ -1,0 +1,37 @@
+{
+  "history_source": {
+    "source": "Kaggle Store Sales – Time Series Forecasting; CSV do người dùng tải, schema đã kiểm tra tại chỗ",
+    "simulated": false,
+    "provenance": "Người dùng xác nhận đã tải từ Kaggle; không có checksum từ máy chủ để xác thực độc lập.",
+    "unit": "sales tổng theo cửa hàng × nhóm hàng × ngày; có thể có phần thập phân, không phải đơn vị SKU đồng nhất",
+    "original_file_sha256": "99a1b7f4241821df10fa71f23abdd71c634f71f901e3cab1400c0f0c583f862c",
+    "verified_files": [
+      "train.csv",
+      "stores.csv",
+      "holidays_events.csv"
+    ],
+    "modeling_scope": "Toàn bộ 54 cửa hàng, ba nhóm BEVERAGES, GROCERY I, PRODUCE; chọn trước khi xem metric"
+  },
+  "training_source": {
+    "source": "Kaggle Store Sales – Time Series Forecasting; CSV do người dùng tải, schema đã kiểm tra tại chỗ",
+    "simulated": false,
+    "provenance": "Người dùng xác nhận đã tải từ Kaggle; không có checksum từ máy chủ để xác thực độc lập.",
+    "unit": "sales tổng theo cửa hàng × nhóm hàng × ngày; có thể có phần thập phân, không phải đơn vị SKU đồng nhất",
+    "original_file_sha256": "99a1b7f4241821df10fa71f23abdd71c634f71f901e3cab1400c0f0c583f862c",
+    "verified_files": [
+      "train.csv",
+      "stores.csv",
+      "holidays_events.csv"
+    ],
+    "modeling_scope": "Toàn bộ 54 cửa hàng, ba nhóm BEVERAGES, GROCERY I, PRODUCE; chọn trước khi xem metric",
+    "data_sha256": "99a1b7f4241821df10fa71f23abdd71c634f71f901e3cab1400c0f0c583f862c",
+    "data_path": "data/raw/train.csv",
+    "scope": "cửa hàng × nhóm hàng × ngày",
+    "series_count": 162
+  },
+  "history_sha256": "99a1b7f4241821df10fa71f23abdd71c634f71f901e3cab1400c0f0c583f862c",
+  "model_name": "RandomForest",
+  "assumptions": "Không dùng khuyến mãi, dầu, giao dịch hoặc sự kiện tương lai. Recursive forecast; dự báo chặn tại 0.",
+  "origin": "2017-08-15",
+  "horizon": 30
+}

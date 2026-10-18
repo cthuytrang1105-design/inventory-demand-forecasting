@@ -1,0 +1,792 @@
+{
+  "created_utc": "2026-10-18T04:36:39.392768+00:00",
+  "metadata": {
+    "source": "Kaggle Store Sales – Time Series Forecasting; CSV do người dùng tải, schema đã kiểm tra tại chỗ",
+    "simulated": false,
+    "provenance": "Người dùng xác nhận đã tải từ Kaggle; không có checksum từ máy chủ để xác thực độc lập.",
+    "unit": "sales tổng theo cửa hàng × nhóm hàng × ngày; có thể có phần thập phân, không phải đơn vị SKU đồng nhất",
+    "original_file_sha256": "99a1b7f4241821df10fa71f23abdd71c634f71f901e3cab1400c0f0c583f862c",
+    "verified_files": [
+      "train.csv",
+      "stores.csv",
+      "holidays_events.csv"
+    ],
+    "modeling_scope": "Toàn bộ 54 cửa hàng, ba nhóm BEVERAGES, GROCERY I, PRODUCE; chọn trước khi xem metric",
+    "data_sha256": "99a1b7f4241821df10fa71f23abdd71c634f71f901e3cab1400c0f0c583f862c",
+    "data_path": "data/raw/train.csv",
+    "scope": "cửa hàng × nhóm hàng × ngày",
+    "series_count": 162
+  },
+  "environment": {
+    "python": "3.9.6",
+    "platform": "macOS-26.5.1-arm64-arm-64bit",
+    "numpy": "1.26.4",
+    "pandas": "2.2.3",
+    "scikit-learn": "1.6.1",
+    "joblib": "1.5.2",
+    "streamlit": "1.49.1"
+  },
+  "quick": false,
+  "max_series": null,
+  "horizon": 30,
+  "seed": 42,
+  "selected_model": "RandomForest",
+  "best_params": {
+    "model__min_samples_leaf": 6,
+    "model__max_features": 0.7,
+    "model__max_depth": 10
+  },
+  "selection_reason": "RandomForest có WAPE validation nhỏ nhất (nếu WAPE không xác định dùng MAE); nếu bằng nhau ưu tiên thời gian suy luận thấp hơn. Test không tham gia tuning/chọn mô hình.",
+  "series": [
+    [
+      1,
+      "BEVERAGES"
+    ],
+    [
+      1,
+      "GROCERY I"
+    ],
+    [
+      1,
+      "PRODUCE"
+    ],
+    [
+      2,
+      "BEVERAGES"
+    ],
+    [
+      2,
+      "GROCERY I"
+    ],
+    [
+      2,
+      "PRODUCE"
+    ],
+    [
+      3,
+      "BEVERAGES"
+    ],
+    [
+      3,
+      "GROCERY I"
+    ],
+    [
+      3,
+      "PRODUCE"
+    ],
+    [
+      4,
+      "BEVERAGES"
+    ],
+    [
+      4,
+      "GROCERY I"
+    ],
+    [
+      4,
+      "PRODUCE"
+    ],
+    [
+      5,
+      "BEVERAGES"
+    ],
+    [
+      5,
+      "GROCERY I"
+    ],
+    [
+      5,
+      "PRODUCE"
+    ],
+    [
+      6,
+      "BEVERAGES"
+    ],
+    [
+      6,
+      "GROCERY I"
+    ],
+    [
+      6,
+      "PRODUCE"
+    ],
+    [
+      7,
+      "BEVERAGES"
+    ],
+    [
+      7,
+      "GROCERY I"
+    ],
+    [
+      7,
+      "PRODUCE"
+    ],
+    [
+      8,
+      "BEVERAGES"
+    ],
+    [
+      8,
+      "GROCERY I"
+    ],
+    [
+      8,
+      "PRODUCE"
+    ],
+    [
+      9,
+      "BEVERAGES"
+    ],
+    [
+      9,
+      "GROCERY I"
+    ],
+    [
+      9,
+      "PRODUCE"
+    ],
+    [
+      10,
+      "BEVERAGES"
+    ],
+    [
+      10,
+      "GROCERY I"
+    ],
+    [
+      10,
+      "PRODUCE"
+    ],
+    [
+      11,
+      "BEVERAGES"
+    ],
+    [
+      11,
+      "GROCERY I"
+    ],
+    [
+      11,
+      "PRODUCE"
+    ],
+    [
+      12,
+      "BEVERAGES"
+    ],
+    [
+      12,
+      "GROCERY I"
+    ],
+    [
+      12,
+      "PRODUCE"
+    ],
+    [
+      13,
+      "BEVERAGES"
+    ],
+    [
+      13,
+      "GROCERY I"
+    ],
+    [
+      13,
+      "PRODUCE"
+    ],
+    [
+      14,
+      "BEVERAGES"
+    ],
+    [
+      14,
+      "GROCERY I"
+    ],
+    [
+      14,
+      "PRODUCE"
+    ],
+    [
+      15,
+      "BEVERAGES"
+    ],
+    [
+      15,
+      "GROCERY I"
+    ],
+    [
+      15,
+      "PRODUCE"
+    ],
+    [
+      16,
+      "BEVERAGES"
+    ],
+    [
+      16,
+      "GROCERY I"
+    ],
+    [
+      16,
+      "PRODUCE"
+    ],
+    [
+      17,
+      "BEVERAGES"
+    ],
+    [
+      17,
+      "GROCERY I"
+    ],
+    [
+      17,
+      "PRODUCE"
+    ],
+    [
+      18,
+      "BEVERAGES"
+    ],
+    [
+      18,
+      "GROCERY I"
+    ],
+    [
+      18,
+      "PRODUCE"
+    ],
+    [
+      19,
+      "BEVERAGES"
+    ],
+    [
+      19,
+      "GROCERY I"
+    ],
+    [
+      19,
+      "PRODUCE"
+    ],
+    [
+      20,
+      "BEVERAGES"
+    ],
+    [
+      20,
+      "GROCERY I"
+    ],
+    [
+      20,
+      "PRODUCE"
+    ],
+    [
+      21,
+      "BEVERAGES"
+    ],
+    [
+      21,
+      "GROCERY I"
+    ],
+    [
+      21,
+      "PRODUCE"
+    ],
+    [
+      22,
+      "BEVERAGES"
+    ],
+    [
+      22,
+      "GROCERY I"
+    ],
+    [
+      22,
+      "PRODUCE"
+    ],
+    [
+      23,
+      "BEVERAGES"
+    ],
+    [
+      23,
+      "GROCERY I"
+    ],
+    [
+      23,
+      "PRODUCE"
+    ],
+    [
+      24,
+      "BEVERAGES"
+    ],
+    [
+      24,
+      "GROCERY I"
+    ],
+    [
+      24,
+      "PRODUCE"
+    ],
+    [
+      25,
+      "BEVERAGES"
+    ],
+    [
+      25,
+      "GROCERY I"
+    ],
+    [
+      25,
+      "PRODUCE"
+    ],
+    [
+      26,
+      "BEVERAGES"
+    ],
+    [
+      26,
+      "GROCERY I"
+    ],
+    [
+      26,
+      "PRODUCE"
+    ],
+    [
+      27,
+      "BEVERAGES"
+    ],
+    [
+      27,
+      "GROCERY I"
+    ],
+    [
+      27,
+      "PRODUCE"
+    ],
+    [
+      28,
+      "BEVERAGES"
+    ],
+    [
+      28,
+      "GROCERY I"
+    ],
+    [
+      28,
+      "PRODUCE"
+    ],
+    [
+      29,
+      "BEVERAGES"
+    ],
+    [
+      29,
+      "GROCERY I"
+    ],
+    [
+      29,
+      "PRODUCE"
+    ],
+    [
+      30,
+      "BEVERAGES"
+    ],
+    [
+      30,
+      "GROCERY I"
+    ],
+    [
+      30,
+      "PRODUCE"
+    ],
+    [
+      31,
+      "BEVERAGES"
+    ],
+    [
+      31,
+      "GROCERY I"
+    ],
+    [
+      31,
+      "PRODUCE"
+    ],
+    [
+      32,
+      "BEVERAGES"
+    ],
+    [
+      32,
+      "GROCERY I"
+    ],
+    [
+      32,
+      "PRODUCE"
+    ],
+    [
+      33,
+      "BEVERAGES"
+    ],
+    [
+      33,
+      "GROCERY I"
+    ],
+    [
+      33,
+      "PRODUCE"
+    ],
+    [
+      34,
+      "BEVERAGES"
+    ],
+    [
+      34,
+      "GROCERY I"
+    ],
+    [
+      34,
+      "PRODUCE"
+    ],
+    [
+      35,
+      "BEVERAGES"
+    ],
+    [
+      35,
+      "GROCERY I"
+    ],
+    [
+      35,
+      "PRODUCE"
+    ],
+    [
+      36,
+      "BEVERAGES"
+    ],
+    [
+      36,
+      "GROCERY I"
+    ],
+    [
+      36,
+      "PRODUCE"
+    ],
+    [
+      37,
+      "BEVERAGES"
+    ],
+    [
+      37,
+      "GROCERY I"
+    ],
+    [
+      37,
+      "PRODUCE"
+    ],
+    [
+      38,
+      "BEVERAGES"
+    ],
+    [
+      38,
+      "GROCERY I"
+    ],
+    [
+      38,
+      "PRODUCE"
+    ],
+    [
+      39,
+      "BEVERAGES"
+    ],
+    [
+      39,
+      "GROCERY I"
+    ],
+    [
+      39,
+      "PRODUCE"
+    ],
+    [
+      40,
+      "BEVERAGES"
+    ],
+    [
+      40,
+      "GROCERY I"
+    ],
+    [
+      40,
+      "PRODUCE"
+    ],
+    [
+      41,
+      "BEVERAGES"
+    ],
+    [
+      41,
+      "GROCERY I"
+    ],
+    [
+      41,
+      "PRODUCE"
+    ],
+    [
+      42,
+      "BEVERAGES"
+    ],
+    [
+      42,
+      "GROCERY I"
+    ],
+    [
+      42,
+      "PRODUCE"
+    ],
+    [
+      43,
+      "BEVERAGES"
+    ],
+    [
+      43,
+      "GROCERY I"
+    ],
+    [
+      43,
+      "PRODUCE"
+    ],
+    [
+      44,
+      "BEVERAGES"
+    ],
+    [
+      44,
+      "GROCERY I"
+    ],
+    [
+      44,
+      "PRODUCE"
+    ],
+    [
+      45,
+      "BEVERAGES"
+    ],
+    [
+      45,
+      "GROCERY I"
+    ],
+    [
+      45,
+      "PRODUCE"
+    ],
+    [
+      46,
+      "BEVERAGES"
+    ],
+    [
+      46,
+      "GROCERY I"
+    ],
+    [
+      46,
+      "PRODUCE"
+    ],
+    [
+      47,
+      "BEVERAGES"
+    ],
+    [
+      47,
+      "GROCERY I"
+    ],
+    [
+      47,
+      "PRODUCE"
+    ],
+    [
+      48,
+      "BEVERAGES"
+    ],
+    [
+      48,
+      "GROCERY I"
+    ],
+    [
+      48,
+      "PRODUCE"
+    ],
+    [
+      49,
+      "BEVERAGES"
+    ],
+    [
+      49,
+      "GROCERY I"
+    ],
+    [
+      49,
+      "PRODUCE"
+    ],
+    [
+      50,
+      "BEVERAGES"
+    ],
+    [
+      50,
+      "GROCERY I"
+    ],
+    [
+      50,
+      "PRODUCE"
+    ],
+    [
+      51,
+      "BEVERAGES"
+    ],
+    [
+      51,
+      "GROCERY I"
+    ],
+    [
+      51,
+      "PRODUCE"
+    ],
+    [
+      52,
+      "BEVERAGES"
+    ],
+    [
+      52,
+      "GROCERY I"
+    ],
+    [
+      52,
+      "PRODUCE"
+    ],
+    [
+      53,
+      "BEVERAGES"
+    ],
+    [
+      53,
+      "GROCERY I"
+    ],
+    [
+      53,
+      "PRODUCE"
+    ],
+    [
+      54,
+      "BEVERAGES"
+    ],
+    [
+      54,
+      "GROCERY I"
+    ],
+    [
+      54,
+      "PRODUCE"
+    ]
+  ],
+  "split": {
+    "train": {
+      "start": "2013-01-01",
+      "end": "2017-06-16",
+      "rows": 263088
+    },
+    "validation": {
+      "start": "2017-06-17",
+      "end": "2017-07-16",
+      "rows": 4860
+    },
+    "test": {
+      "start": "2017-07-17",
+      "end": "2017-08-15",
+      "rows": 4860
+    }
+  },
+  "features": [
+    "store_nbr",
+    "family",
+    "day",
+    "month",
+    "weekday",
+    "weekend",
+    "dow_sin",
+    "dow_cos",
+    "year_sin",
+    "year_cos",
+    "trend",
+    "lag_1",
+    "lag_7",
+    "lag_14",
+    "lag_28",
+    "rolling_mean_7",
+    "rolling_std_7",
+    "rolling_mean_14",
+    "rolling_std_14",
+    "rolling_mean_28",
+    "rolling_std_28"
+  ],
+  "feature_count_before_encoding": 21,
+  "filters": {
+    "stores": null,
+    "families": [
+      "BEVERAGES",
+      "GROCERY I",
+      "PRODUCE"
+    ]
+  },
+  "trials": 3,
+  "resolved_selected_params": {
+    "bootstrap": true,
+    "ccp_alpha": 0.0,
+    "criterion": "squared_error",
+    "max_depth": 10,
+    "max_features": 0.7,
+    "max_leaf_nodes": null,
+    "max_samples": null,
+    "min_impurity_decrease": 0.0,
+    "min_samples_leaf": 6,
+    "min_samples_split": 2,
+    "min_weight_fraction_leaf": 0.0,
+    "monotonic_cst": null,
+    "n_estimators": 160,
+    "n_jobs": 1,
+    "oob_score": false,
+    "random_state": 42,
+    "verbose": 0,
+    "warm_start": false
+  },
+  "training_log": "results/official/training.log",
+  "training_events": "results/official/training_events.jsonl",
+  "source_sha256": {
+    "src/__init__.py": "fbdee0d988e4b6f8eabca1cc4776603046e9da7817f024cb5ec8aba051ea49a7",
+    "src/data_processing.py": "492637285d83808ae27d749c22ff03ad692ef3a035c04a78eee1bf7ad21ecea1",
+    "src/demo_data.py": "0ecf3b26cdca9f90b4bef0d06029d566e976bc9eec79a0be5abba010431248db",
+    "src/eda.py": "62a4c4b2ccd3806ef5e05f532c8f9f525bdb13f64fc8cce26c11724ae2c07256",
+    "src/evaluate.py": "d132a77e3488e0f0853475c90d8b02d44313e26634959440420c474f9a40e2b8",
+    "src/feature_engineering.py": "b448cdbffbdb3316e2b5883fde957b0328f880068e6143b80e326f05ff5ed235",
+    "src/inventory.py": "0f3c4848924a94dbf95825059f14fe6aba85935cb3bb86f6136798bbb32a8cb2",
+    "src/models.py": "430c0f73ee111b5c74b81073b172a6466611e34fa58cbc9681508d996a76835a",
+    "src/predict.py": "8b414ca43d7e23fa4d25d0ae66688b9ea7050a6d25d4d52f32783b65e7d2528a",
+    "src/report.py": "1704132212236fca355a58de8238cdb25cbd2fe778a7558bf806c78abe0bf48b",
+    "src/train.py": "be50265b2a9d08a0d723da860b763199a6da4297366055036bf3677214a1f0f9",
+    "src/training_evidence.py": "b712edce5cbce3b4c7f1dee3012e00a9e5fb4394e2399f5834bbdbd9127e0ca0",
+    "src/tuning.py": "76e1cc0254bc2d3012e6a5208f39ccd184d940aa4d2cd0490d8c5181703eb6c0",
+    "src/utils.py": "4036fa7124d4a3964d8691c40066112d46a0b9b37c39890be514f21a447b9d2a",
+    "requirements.txt": "645e26f1157d3439a7e42872b88898e58eb055fd408337e7ca216a6cbef525be"
+  },
+  "train_feature_rows": 258552,
+  "test_untouched_during_selection": true,
+  "deployment_refit_seconds": 149.90805654099995,
+  "total_seconds": 1151.0505395,
+  "model_path": "models/official/model.joblib",
+  "evaluation_model_path": "models/official/evaluation_model.joblib",
+  "assumptions": [
+    "Không dùng biến ngoại sinh, không cần biết khuyến mãi/dầu/giao dịch tương lai.",
+    "Ngày thiếu ffill từ quá khứ chỉ làm state, không tạo nhãn train/test.",
+    "Chỉ đánh giá quan sát thật; dự báo nhiều bước recursive, chặn âm tại 0.",
+    "Một origin validation và một origin test, chưa rolling-origin nhiều giai đoạn.",
+    "Artefact triển khai refit trên cả test sau khi test đã hoàn tất; tái hiện test bằng evaluation_model."
+  ]
+}
