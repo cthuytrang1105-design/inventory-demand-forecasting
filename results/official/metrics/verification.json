@@ -1,0 +1,28 @@
+{
+  "verified": true,
+  "simulated": false,
+  "input_sha256_matches": true,
+  "holdout_predictions_reproduced": true,
+  "test_rows": 4860,
+  "test_metrics_recomputed": {
+    "MAE": 445.63336140543737,
+    "RMSE": 692.4955666579094,
+    "WAPE_pct": 12.90367367639223
+  },
+  "evaluation_model_sha256": "941e52eefd355abb74f4b965eeef588b8784154539cd957530344338b973acc9",
+  "deployment_model_sha256": "c314d8b5c3783464f101af21f20c6e43d456e459bd9fc94cdda1310e59adc91b",
+  "forecast_checks": {
+    "7": {
+      "rows": 1134,
+      "start": "2017-08-16",
+      "end": "2017-08-22",
+      "path": "results/official/forecast_7_days_all_series.csv"
+    },
+    "30": {
+      "rows": 4860,
+      "start": "2017-08-16",
+      "end": "2017-09-14",
+      "path": "results/official/forecast_30_days_all_series.csv"
+    }
+  }
+}

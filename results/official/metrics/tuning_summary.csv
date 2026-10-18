@@ -1,0 +1,5 @@
+model,before_MAE,best_MAE,before_WAPE_pct,best_WAPE_pct,best_params
+SeasonalNaive,517.8128447798354,517.8128447798354,14.531416565496126,14.531416565496126,{}
+Ridge,569.9543706261226,559.0898053674644,15.994667699706861,15.689774676738873,"{""model__alpha"": 1000.0}"
+RandomForest,449.5331222742886,449.0079973913329,12.615278136897572,12.600541522114712,"{""model__min_samples_leaf"": 6, ""model__max_features"": 0.7, ""model__max_depth"": 10}"
+HistGradientBoosting,516.2126652373244,478.7716201665132,14.486510619754863,13.435800062733431,"{""model__max_leaf_nodes"": 15, ""model__learning_rate"": 0.06, ""model__l2_regularization"": 1.0}"
