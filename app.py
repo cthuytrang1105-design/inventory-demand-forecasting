@@ -61,7 +61,8 @@ def selection(df, prefix):
 with st.sidebar:
     st.title("📦 DemandLab")
     st.caption("DỰ BÁO NHU CẦU & HỖ TRỢ TỒN KHO")
-    mode = st.selectbox("Nguồn chạy", ["Demo mô phỏng", "CSV người dùng / Kaggle"])
+    mode = st.selectbox("Nguồn chạy", ["Demo mô phỏng", "CSV người dùng / Kaggle"],
+                        index=1 if (ROOT / "results/official/run_manifest.json").exists() else 0)
     run_name = "demo" if mode == "Demo mô phỏng" else "official"
     page = st.radio("Điều hướng", ["Tổng quan", "Phân tích dữ liệu", "Dự báo nhu cầu",
                                      "Quản lý tồn kho", "Đánh giá mô hình", "Giới thiệu hệ thống"])
@@ -87,7 +88,7 @@ try:
     if source.get("simulated"):
         st.warning("DỮ LIỆU MÔ PHỎNG — dùng để kiểm thử và minh họa, không phải kết quả trên Kaggle.")
     else:
-        st.info("CSV do người dùng cung cấp. Nguồn và đơn vị cần đối chiếu với tệp gốc; không chứa tồn kho thực tế.")
+        st.info(f"{source['source']}. Dữ liệu bán hàng không chứa tồn kho thực tế.")
     if manifest:
         model_path = ROOT / manifest["model_path"]
         artifact = cached_model(str(model_path), model_path.stat().st_mtime_ns)
@@ -136,6 +137,9 @@ elif page == "Tổng quan":
             st.write(f"**{manifest['selected_model']}** · {manifest['metadata']['series_count']} chuỗi được huấn luyện")
             st.write(manifest["selection_reason"])
             st.caption(f"Dữ liệu fit gần nhất: {artifact['training_end']}")
+            families = sorted({pair[1] for pair in manifest["series"]})
+            st.caption(f"Phạm vi mô hình: {len({pair[0] for pair in manifest['series']})} cửa hàng · "
+                       + ", ".join(families))
         else:
             st.info("Chưa có mô hình. Chạy lệnh huấn luyện trong README.")
     with right:
@@ -261,3 +265,25 @@ elif page == "Đánh giá mô hình":
         with st.expander("Cấu hình, mốc chia dữ liệu và môi trường thực nghiệm"):
             st.json(manifest)
         st.caption("Test dùng evaluation_model.joblib fit đến trước test. model.joblib phục vụ dự báo mới được refit trên toàn bộ lịch sử sau đánh giá. Không dùng model triển khai để tái tính test.")
+        st.subheader("Bằng chứng quá trình huấn luyện")
+        st.write("Mỗi cấu hình được fit trên tập train, sau đó dự báo đệ quy trên kiểm định. "
+                 "Thời điểm chọn mô hình được ghi trước khi đánh giá tập kiểm tra.")
+        history_path = result_dir / "metrics/training_history.csv"
+        if history_path.exists():
+            history = pd.read_csv(history_path)
+            if not history.empty:
+                history["Cấu hình"] = history.trial.map(lambda t: "Gốc" if t == 0 else f"Tuning {t}")
+                fig = px.line(history, x="iteration", y="RMSE", color="Cấu hình",
+                              title="HGB: RMSE trên mẫu train theo vòng boosting",
+                              labels={"iteration": "Vòng boosting", "RMSE": "RMSE trên mẫu train"})
+                st.plotly_chart(fig, use_container_width=True)
+                st.caption("Chỉ số in-sample trên tối đa 5.000 hàng train cố định, dùng quan sát quá trình học; "
+                           "không thay MAE/RMSE/WAPE kiểm định hoặc kiểm tra. Ridge và Random Forest không cần epoch như mạng nơ-ron.")
+        for filename, label in [("training.log", "Tải nhật ký huấn luyện"),
+                                ("training_events.jsonl", "Tải dấu vết từng bước train")]:
+            log_path = result_dir / filename
+            if log_path.exists():
+                st.download_button(label, log_path.read_bytes(), filename, "text/plain")
+        if (result_dir / "training.log").exists():
+            with st.expander("Xem các bước thực thi trong nhật ký"):
+                st.code((result_dir / "training.log").read_text(encoding="utf-8"), language="text")

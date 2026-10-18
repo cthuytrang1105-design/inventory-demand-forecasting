@@ -4,8 +4,8 @@
 
 Người thực hiện: [điền danh sách thành viên]. Giảng viên: [điền thông tin xác nhận].
 Bảng nhiệm vụ: [phan_cong_nhiem_vu.md](phan_cong_nhiem_vu.md).
-Kết quả dưới đây được sinh trực tiếp bằng `python -m src.report --results results/demo`.
-Thời điểm thực nghiệm UTC: 2026-10-18T03:27:48.153866+00:00.
+Kết quả dưới đây được sinh trực tiếp bằng `python -m src.report --results results/official`.
+Thời điểm thực nghiệm UTC: 2026-10-18T04:36:39.392768+00:00.
 
 ## 1. Giới thiệu đề tài
 
@@ -35,15 +35,19 @@ do hết hàng. Không diễn giải sales thành doanh thu tiền tệ.
 
 ## 5. Giới thiệu dataset
 
-Nguồn lần chạy này: **DỮ LIỆU MÔ PHỎNG — tạo bởi src.demo_data, không phải Kaggle**.
-Đánh dấu mô phỏng: **True**.
-CSV đã kiểm tra thực tế có 4,320 dòng; dùng 4,320 dòng
-cho 9 chuỗi. Cột thực tế: id, date, store_nbr, family, sales, onpromotion.
-Đơn vị: đơn vị nhu cầu mô phỏng; không đại diện SKU thực.
+Nguồn lần chạy này: **Kaggle Store Sales – Time Series Forecasting; CSV do người dùng tải, schema đã kiểm tra tại chỗ**.
+Đánh dấu mô phỏng: **False**.
+CSV đã kiểm tra thực tế có 3,000,888 dòng; dùng 272,808 dòng
+cho 162 chuỗi. Cột thực tế: id, date, store_nbr, family, sales, onpromotion.
+Đơn vị: sales tổng theo cửa hàng × nhóm hàng × ngày; có thể có phần thập phân, không phải đơn vị SKU đồng nhất.
 
-Bộ dữ liệu chính thức dự kiến là [Kaggle Store Sales](https://www.kaggle.com/competitions/store-sales-time-series-forecasting/data).
+Bộ dữ liệu tham chiếu là [Kaggle Store Sales](https://www.kaggle.com/competitions/store-sales-time-series-forecasting/data).
 Tài liệu nguồn xác nhận train.csv gồm cửa hàng, nhóm hàng, sales và onpromotion;
-sales có thể có phần thập phân. Workspace chưa được cung cấp CSV Kaggle ở thời điểm triển khai. Lần chạy này dùng mô phỏng, không công bố như kết quả Kaggle.
+sales có thể có phần thập phân. Lần chạy này dùng CSV người dùng cung cấp. Nguồn được công bố theo metadata người dùng; nhóm cần xác nhận đã tải đúng dữ liệu gốc và tuân thủ điều khoản sử dụng.
+Phạm vi lần chạy: **54 cửa hàng** và các nhóm
+**BEVERAGES, GROCERY I, PRODUCE**.
+EDA toàn bộ CSV: 54 cửa hàng, 33 nhóm hàng, từ 2013-01-01 đến 2017-08-15. Phân tích lễ: Ghép đúng địa bàn; loại ngày transferred và Work Day.
+Phạm vi mô hình có thể nhỏ hơn EDA; số liệu test chỉ đại diện các chuỗi thực sự được train.
 Các tệp chính thức cần tải sau khi đăng nhập
 và chấp thuận điều khoản; README có lệnh huấn luyện riêng, tách artefact demo/official.
 
@@ -51,22 +55,53 @@ và chấp thuận điều khoản; README có lệnh huấn luyện riêng, tá
 
 Thiếu theo cột trước xử lý: `{"id": 0, "date": 0, "store_nbr": 0, "family": 0, "sales": 0, "onpromotion": 0}`.
 Số dòng trùng: 0; trùng khóa: 0.
-Sales trung bình: 122.3827, nhỏ nhất:
-46.4250, lớn nhất: 221.1510.
+Sales trong phạm vi mô hình có trung bình: 2504.0391, nhỏ nhất:
+0.0000, lớn nhất: 124717.0000.
 
 Chương trình từ chối ngày không hợp lệ, khóa trùng, sales thiếu/âm/vô hạn, family rỗng và
 mã cửa hàng không nguyên dương. Thiếu onpromotion được điền 0 cho EDA; biến này không được dùng
 trong mô hình nên không biến giả định điền thành thông tin dự báo.
 Ngày thiếu trong mỗi chuỗi được chèn và forward fill từ quá khứ để lag có nghĩa theo ngày lịch.
 Ngày chèn mang is_observed=False, tuyệt đối không làm nhãn train/test. Lần chạy này chèn
-0 ngày và loại 252 quan sát warm-up
+648 ngày và loại 4536 quan sát warm-up
 không đủ 28 ngày lịch sử. Không dùng backward fill.
 
-EDA HTML trong `results/demo/figures/eda_*.html` gồm xu hướng ngày, tổng theo cửa hàng/nhóm hàng,
+EDA HTML trong `results/official/figures/eda_*.html` gồm xu hướng ngày, tổng theo cửa hàng/nhóm hàng,
 trung bình theo thứ/tháng và phân phối khi có/không khuyến mãi. Biểu đồ mô tả tương quan,
 không chứng minh khuyến mãi gây tăng nhu cầu. Biểu đồ lễ chỉ sinh khi thực sự cung cấp
 holidays_events.csv; nếu có stores.csv thì ghép National/Regional/Local đúng địa bàn,
 loại ngày transferred và Work Day. Không tự gán lịch lễ ngoài dữ liệu.
+
+
+### 6.1. Kết quả EDA trên toàn bộ CSV
+
+Sales trung bình toàn CSV: 357.7757; median: 11.0000;
+độ lệch chuẩn: 1101.9977; lớn nhất: 124717.0000.
+Có 939,130 quan sát sales=0 (31.2951%). Phân phối lệch phải mạnh;
+mean lớn hơn median nhiều, do nhiều nhóm có mức bán nhỏ/0 và một số nhóm có sales rất lớn.
+Không coi mọi sales=0 là dữ liệu lỗi hoặc nhu cầu tiềm ẩn bằng 0 vì không có cột trạng thái hết hàng.
+Những ngày không có quan sát trong toàn CSV: 2013-12-25, 2014-12-25, 2015-12-25, 2016-12-25.
+
+Phân phối sales theo khuyến mãi, tính trên tất cả các quan sát:
+
+| promotion | count | mean | q1 | median | q3 | lowerfence | upperfence |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Có | 611329 | 1137.6937 | 121.3440 | 373.0000 | 1268.2490 | 0.0000 | 2988.6020 |
+| Không | 2389559 | 158.2467 | 0.0000 | 3.0000 | 54.0000 | 0.0000 | 135.0000 |
+
+Phân phối sales theo ngày lễ/sự kiện đã ghép đúng địa bàn:
+
+| holiday | count | mean | q1 | median | q3 | lowerfence | upperfence |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| False | 2754972 | 352.1305 | 0.0000 | 11.0000 | 193.0000 | 0.0000 | 482.5000 |
+| True | 245916 | 421.0184 | 0.0000 | 13.0000 | 227.9528 | 0.0000 | 569.8480 |
+
+Các khác biệt mô tả này có thể đồng thời chịu ảnh hưởng của quy mô nhóm hàng/cửa hàng và thời gian;
+không kết luận tác động nhân quả. Các biến trên chưa được dùng trong mô hình dự báo hiện tại.
+Các thống kê tổng theo ngày/cửa hàng/nhóm và trung bình theo thứ/tháng nằm trong
+`results/official/metrics/eda_*.csv`; đồ thị tương ứng trong figures/eda_*.html.
+Box plot xuất quartile/whisker từ toàn bộ dữ liệu thay vì đưa hàng triệu điểm vào HTML.
+
 
 ## 7. Phương pháp Machine Learning
 
@@ -88,9 +123,9 @@ Chia hoàn toàn theo ngày, không random split và không để cùng ngày r�
 
 | Tập | start | end | rows |
 | --- | --- | --- | --- |
-| train | 2024-01-01 | 2025-02-23 | 3780 |
-| validation | 2025-02-24 | 2025-03-25 | 270 |
-| test | 2025-03-26 | 2025-04-24 | 270 |
+| train | 2013-01-01 | 2017-06-16 | 263088 |
+| validation | 2017-06-17 | 2017-07-16 | 4860 |
+| test | 2017-07-17 | 2017-08-15 | 4860 |
 
 Các mô hình có cùng tập quan sát train và cùng origin, horizon validation/test. Validation được
 dự báo đệ quy từ cuối train; test từ cuối train+validation. Không nạp sales thật của ngày trước
@@ -98,10 +133,73 @@ trong holdout để tạo lag cho ngày kế tiếp. Các dự báo âm được
 Mô hình tốt nhất được khóa trước khi chạy test. Test có ground truth được tách từ lịch sử;
 test.csv Kaggle không có sales và không dùng làm nhãn đánh giá.
 
+
+### 8.1. Minh chứng quá trình huấn luyện đã thực thi
+
+Chương trình tạo **258,552 mẫu train** sau warm-up,
+**21 cột đặc trưng trước one-hot** (2 khóa phân loại + các biến lịch/quá khứ).
+Danh sách đặc trưng đầy đủ và SHA-256 dữ liệu/mã nguồn ghi trong run_manifest.json.
+Lệnh tái lập đúng phạm vi lần chạy:
+
+```bash
+python -m src.train --data data/raw/train.csv --output results/official --model-dir models/official --horizon 30 --trials 3 --families BEVERAGES 'GROCERY I' PRODUCE
+```
+
+Đoạn mã thật thực hiện fit, tại `src/tuning.py`:
+
+```python
+model = build_model(name, params, quick)
+model.fit(train_features[FEATURES], train_features.sales)
+pred = recursive_forecast(model, history, horizon, name)
+matched = join_actual(validation, pred)
+record = metrics(matched.sales, matched.prediction)
+```
+
+Đoạn trích được rút gọn để trình bày; mã chạy đầy đủ còn đo thời gian, ghi nhật ký,
+lưu tham số và chẩn đoán. Scaler/encoder được fit cùng model trong sklearn Pipeline.
+Đây là việc học tham số từ X_train/y_train, khác với chỉ tải model đã huấn luyện để predict.
+Ridge giải hồi quy có phạt L2; RF fit nhiều cây; HGB học tuần tự các vòng boosting.
+Không có yêu cầu mọi thuật toán phải in epoch như mạng nơ-ron.
+
+Nhật ký thực thi có timestamp UTC, không phải log minh họa:
+
+| Bước thực thi | Timestamp UTC | Bằng chứng |
+| --- | --- | --- |
+| Fit Ridge cấu hình gốc hoàn tất | 2026-10-18T04:15:44.093059+00:00 | 0.134358 giây; validation WAPE 15.9947% |
+| Khóa lựa chọn mô hình | 2026-10-18T04:31:24.221940+00:00 | RandomForest theo validation |
+| Lần đánh giá test đầu tiên | 2026-10-18T04:31:24.812739+00:00 | Sau khi lựa chọn đã khóa |
+
+Có **13 cấu hình được chấm** gồm cả seasonal naive; seasonal naive không fit.
+Mỗi cấu hình ML ghi cặp trial_started/trial_completed, số mẫu, tham số đầy đủ,
+train_seconds, inference_seconds và MAE/RMSE/WAPE validation. Không có nhãn test trong fit/tuning.
+
+Các tệp nộp kèm để giảng viên đối chiếu:
+
+- [training.log](../results/official/training.log): đầu ra thật của quá trình chạy.
+- [training_events.jsonl](../results/official/training_events.jsonl): dấu vết từng bước với timestamp.
+- [run_manifest.json](../results/official/run_manifest.json): phạm vi, mốc chia, môi trường, đặc trưng, SHA-256.
+- [tuning.csv](../results/official/metrics/tuning.csv): từng cấu hình, tham số đầy đủ, kết quả đo thật.
+- [source_snapshot](../results/official/source_snapshot): mã Python và requirements tại thời điểm train.
+
+### 8.2. Hình và bảng minh họa quá trình train
+
+1. [Sơ đồ chia thời gian](../results/official/figures/temporal_split.html): train đi trước validation/test.
+2. [Đồ thị HGB theo vòng boosting](../results/official/figures/training_convergence.html): RMSE in-sample trên
+   tối đa 5.000 mẫu train cách đều, cố định cho mọi cấu hình. Dùng chẩn đoán việc học,
+   **không** coi loss train là chất lượng dự báo trên dữ liệu chưa thấy.
+3. [Các lượt tuning và WAPE validation](../results/official/figures/tuning_validation.html): mỗi điểm là một
+   model fit độc lập, không gọi các điểm này là epoch hoặc so như một chuỗi train liên tục.
+4. Bảng trước/sau tuning ở mục 9 và bảng metric test ở mục 10.
+
+Khi chuyển sang Word/PDF, chèn ảnh chụp các đồ thị hoặc trang Đánh giá mô hình đã chạy,
+kèm chú thích nguồn tệp, phạm vi dữ liệu và đơn vị trục. Không tạo ảnh log giả.
+Giữ file HTML/CSV/log trong gói mã nguồn để người chấm kiểm chứng.
+
+
 ## 9. Tối ưu siêu tham số
 
-Sử dụng sklearn ParameterSampler, random_state=42, quick=True,
-với số lượt cụ thể ghi trong `results/demo/metrics/tuning.json`.
+Sử dụng sklearn ParameterSampler, random_state=42, quick=False,
+với số lượt cụ thể ghi trong `results/official/metrics/tuning.json`.
 Mỗi cấu hình fit trên train và chấm bằng recursive validation một origin (không phải random K-fold).
 Không gọi là RandomizedSearchCV: vòng tìm kiếm tự viết để bảo toàn semantics dự báo nhiều bước.
 Không gian tìm kiếm: Ridge alpha 0.1/1/10/100/1000;
@@ -112,10 +210,10 @@ Toàn bộ kết quả và thời gian từng lượt nằm trong tuning.json v�
 
 | model | before_MAE | best_MAE | before_WAPE_pct | best_WAPE_pct | best_params |
 | --- | --- | --- | --- | --- | --- |
-| SeasonalNaive | 6.8450 | 6.8450 | 5.0122 | 5.0122 | {} |
-| Ridge | 4.5703 | 4.5703 | 3.3466 | 3.3466 | {"model__alpha": 1.0} |
-| RandomForest | 5.3429 | 5.3306 | 3.9123 | 3.9033 | {"model__min_samples_leaf": 3, "model__max_features": 1.0, "model__max_depth": 16} |
-| HistGradientBoosting | 5.2933 | 5.2933 | 3.8760 | 3.8760 | {} |
+| SeasonalNaive | 517.8128 | 517.8128 | 14.5314 | 14.5314 | {} |
+| Ridge | 569.9544 | 559.0898 | 15.9947 | 15.6898 | {"model__alpha": 1000.0} |
+| RandomForest | 449.5331 | 449.0080 | 12.6153 | 12.6005 | {"model__min_samples_leaf": 6, "model__max_features": 0.7, "model__max_depth": 10} |
+| HistGradientBoosting | 516.2127 | 478.7716 | 14.4865 | 13.4358 | {"model__max_leaf_nodes": 15, "model__learning_rate": 0.06, "model__l2_regularization": 1.0} |
 
 ## 10. Kết quả thực nghiệm và so sánh
 
@@ -126,23 +224,26 @@ Native thread pool và RF n_jobs giới hạn 1 để phù hợp laptop. Timing 
 
 | model | validation_WAPE_pct | test_MAE | test_RMSE | test_WAPE_pct | train_seconds | inference_seconds |
 | --- | --- | --- | --- | --- | --- | --- |
-| SeasonalNaive | 5.0122 | 5.9799 | 7.6751 | 4.2994 | 0.0000 | 0.0617 |
-| Ridge | 3.3466 | 4.5288 | 5.8656 | 3.2561 | 0.0026 | 0.0916 |
-| RandomForest | 3.9033 | 5.6261 | 6.9816 | 4.0450 | 0.9554 | 0.1552 |
-| HistGradientBoosting | 3.8760 | 5.4091 | 6.9596 | 3.8890 | 0.0605 | 0.0965 |
+| SeasonalNaive | 14.5314 | 517.5552 | 899.2306 | 14.9862 | 0.0000 | 0.2438 |
+| Ridge | 15.6898 | 542.3826 | 797.5374 | 15.7051 | 0.1405 | 0.2866 |
+| RandomForest | 12.6005 | 445.6334 | 692.4956 | 12.9037 | 148.3755 | 0.4393 |
+| HistGradientBoosting | 13.4358 | 476.4709 | 732.5128 | 13.7966 | 13.6987 | 0.3129 |
 
 MAE = mean(|y−ŷ|), RMSE = sqrt(mean((y−ŷ)²)), cùng đơn vị sales.
 WAPE = 100 × sum(|y−ŷ|)/sum(|y|); mẫu số 0 thì trả None/không xác định.
 WAPE toàn cục ưu tiên chuỗi có quy mô sales lớn, không phải trung bình phần trăm từng chuỗi.
 `train_seconds` là refit trên train+validation để đánh giá test, không gồm tổng tuning;
 `inference_seconds` gồm validation trong bộ nhớ, tạo đặc trưng và toàn bộ đệ quy test,
-không gồm đọc đĩa/nạp model. Tổng lần chạy: 6.848 giây.
+không gồm đọc đĩa/nạp model. Tổng lần chạy: 1151.051 giây.
 
-Mô hình được chọn: **Ridge**. Ridge có WAPE validation nhỏ nhất (nếu WAPE không xác định dùng MAE); nếu bằng nhau ưu tiên thời gian suy luận thấp hơn. Test không tham gia tuning/chọn mô hình.
-Tham số: `{"model__alpha": 1.0}`.
-Test MAE 4.5288, RMSE 5.8656, WAPE 3.2561%.
+Mô hình được chọn: **RandomForest**. RandomForest có WAPE validation nhỏ nhất (nếu WAPE không xác định dùng MAE); nếu bằng nhau ưu tiên thời gian suy luận thấp hơn. Test không tham gia tuning/chọn mô hình.
+Tham số: `{"model__min_samples_leaf": 6, "model__max_features": 0.7, "model__max_depth": 10}`.
+Tham số estimator đầy đủ (bao gồm mặc định):
+`{"bootstrap": true, "ccp_alpha": 0.0, "criterion": "squared_error", "max_depth": 10, "max_features": 0.7, "max_leaf_nodes": null, "max_samples": null, "min_impurity_decrease": 0.0, "min_samples_leaf": 6, "min_samples_split": 2, "min_weight_fraction_leaf": 0.0, "monotonic_cst": null, "n_estimators": 160, "n_jobs": 1, "oob_score": false, "random_state": 42, "verbose": 0, "warm_start": false}`.
+Test MAE 445.6334, RMSE 692.4956, WAPE 12.9037%.
+So với seasonal naive có test WAPE 14.9862%, mô hình được chọn có WAPE giảm 13.90% theo tỷ lệ tương đối. Đây là mức thay đổi WAPE, không phải accuracy. Kết luận chỉ áp dụng cho phạm vi và holdout của lần chạy này. Thuật toán có MAE test thấp nhất trong bảng là RandomForest. Không dùng kết quả test để thay đổi model hoặc tham số đã chọn bằng validation; nếu thứ hạng khác nhau, cần công bố khác biệt và kiểm tra thêm bằng backtest trong nghiên cứu tiếp theo.
 Đây là kết quả đo, không phải cam kết độ chính xác khi vận hành.
-Biểu đồ test: `results/demo/figures/test_actual_vs_forecast.html`; sai số từng chuỗi: metrics/test_by_series.csv.
+Biểu đồ test: `results/official/figures/test_actual_vs_forecast.html`; sai số từng chuỗi: metrics/test_by_series.csv.
 
 Artefact `evaluation_model.joblib` chỉ fit đến trước test để tái hiện đánh giá. Sau khi hoàn tất
 đánh giá độc lập, `model.joblib` được refit trên toàn bộ lịch sử để dự báo mới. Không dùng bản
@@ -171,7 +272,7 @@ MOQ, lịch giao hàng hoặc hàm mục tiêu. Không tự động tạo đơn 
 
 ## 13. Hạn chế
 
-Chưa thực nghiệm trên Kaggle chính thức vì thiếu CSV. Dữ liệu mô phỏng có quy luật đơn giản; kết quả không suy rộng sang bán lẻ thật. Chỉ một origin validation và một test,
+Kết quả chỉ đại diện cho CSV và các chuỗi được chọn trong lần chạy này; không mặc định suy rộng cho toàn bộ chuỗi hoặc thời kỳ khác. Chỉ một origin validation và một test,
 horizon test của lần chạy là 30 ngày; chức năng 7/30 ngày không đồng nghĩa
 đã đánh giá độc lập cả hai horizon. Chưa có khoảng dự báo hay backtest nhiều mùa.
 Không dùng biến ngoại sinh nên có thể bỏ lỡ lễ/khuyến mãi/biến động kinh tế.
@@ -181,7 +282,7 @@ Quick mode tối đa 12 chuỗi nếu không ghi --max-series; kết quả chỉ
 
 ## 14. Hướng phát triển
 
-Thu thập CSV chính thức, đối chiếu đơn vị và bổ sung rolling-origin backtest; thử LightGBM/XGBoost
+Mở rộng số nhóm hàng được train, đối chiếu đơn vị và bổ sung rolling-origin backtest; thử LightGBM/XGBoost
 trong cùng protocol; kết hợp lịch lễ theo địa bàn và kế hoạch khuyến mãi đã biết;
 đánh giá theo từng nhóm hàng/horizon; bổ sung khoảng dự báo và theo dõi drift.
 Để tối ưu tồn kho thực sự, cần dữ liệu tồn theo SKU, phân phối lead time, chi phí và ràng buộc vận hành.
@@ -191,7 +292,7 @@ trong cùng protocol; kết hợp lịch lễ theo địa bàn và kế hoạch 
 Sản phẩm thực hiện đủ pipeline train–tuning–validation–test–lưu/nạp–suy luận,
 so sánh ba thuật toán học máy và một mốc naive trên dữ liệu hiện có, có giao diện và quy tắc tồn kho.
 Giá trị của bản giữa kỳ là quy trình tái lập, tránh leakage và công bố giới hạn dữ liệu.
-Chất lượng trên Kaggle cần được đo sau khi có dataset chính thức.
+Cần bổ sung đánh giá trên nhiều mốc thời gian độc lập trước khi kết luận chất lượng vận hành.
 Kết quả kiểm thử thực thi ghi riêng trong [kiem_thu.md](kiem_thu.md) và JUnit XML;
 không suy ra test đã qua chỉ từ việc sinh báo cáo này.
 

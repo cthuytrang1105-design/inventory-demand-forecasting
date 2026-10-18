@@ -5,9 +5,29 @@ train / validation / test theo thời gian → random search → lựa chọn m�
 dự báo nhiều bước → đề xuất nhập hàng. Giao diện Streamlit gồm sáu trang, bằng tiếng Việt.
 Không dùng API mô hình ngôn ngữ lớn cho bài toán dự báo.
 
-**Trạng thái dữ liệu:** workspace ban đầu chưa có CSV Kaggle. Bản bàn giao đã chạy thực nghiệm
-trên **dữ liệu mô phỏng**, 4.320 dòng, 480 ngày, 3 cửa hàng × 3 nhóm hàng, seed 42.
-Kết quả này không đại diện cho độ chính xác trên Kaggle hoặc hoạt động bán lẻ thật.
+**Dữ liệu thực đã có:** `data/raw/train.csv` gồm **3.000.888 dòng**, 54 cửa hàng, 33 nhóm hàng,
+từ 01/01/2013 đến 15/08/2017. Có thêm stores.csv và holidays_events.csv.
+EDA chạy trên toàn bộ CSV; thực nghiệm ML chính thức dùng **toàn bộ 54 cửa hàng × 3 nhóm**
+`BEVERAGES`, `GROCERY I`, `PRODUCE`: **162 chuỗi, 272.808 quan sát**.
+Phạm vi này được chọn trước khi xem metric để phù hợp máy cá nhân; chưa train cả 33 nhóm.
+Kết quả chính thức nằm ở results/official và models/official. Dữ liệu mô phỏng vẫn giữ riêng ở data/demo.
+
+Mô hình chọn theo validation: **Random Forest**. Test giữ riêng 4.860 quan sát:
+
+| Thuật toán | MAE test | RMSE test | WAPE test (%) |
+| --- | ---: | ---: | ---: |
+| Seasonal naive | 517,555 | 899,231 | 14,986 |
+| Ridge | 542,383 | 797,537 | 15,705 |
+| Random Forest | 445,633 | 692,496 | 12,904 |
+| HistGradientBoosting | 476,471 | 732,513 | 13,797 |
+
+Nguồn: results/official/metrics/comparison.csv. Đã tái hiện test từ model nạp lại,
+kiểm tra dự báo 7/30 ngày và giao diện AppTest trên CSV thật; bộ test tự động **41/41 passed**.
+
+
+Để mở kết quả đã train, chỉ cần kích hoạt .venv và chạy `python -m streamlit run app.py`.
+Giao diện tự chọn nguồn Kaggle khi có manifest chính thức. Dữ liệu kết thúc năm 2017, nên dự báo mới
+bắt đầu **16/08/2017**, không phải dự báo cho ngày hiện tại năm 2026.
 
 ## 1. Cài đặt
 
@@ -50,7 +70,7 @@ python -m src.eda --data data/demo/sales.csv --output results/demo
 python -m src.train --data data/demo/sales.csv --output results/demo --model-dir models/demo --quick --trials 3
 python -m src.evaluate --predictions results/demo/metrics/test_predictions.csv --output results/demo/metrics/recomputed_test.json
 python -m src.predict --input data/demo/sales.csv --model models/demo/model.joblib --store 1 --family BEVERAGES --horizon 30 --output results/demo/forecast_30_days.csv
-python -m src.report --results results/demo --output docs/bao_cao_giua_ky.md
+python -m src.report --results results/demo --output docs/bao_cao_demo.md
 python -m pytest -q --junitxml=results/metrics/pytest.xml
 python -m streamlit run app.py
 ```
@@ -72,15 +92,17 @@ Mỗi lần train cùng thư mục sẽ thay các artefact/kết quả lần tr�
 ```bash
 python -m src.data_processing --data data/raw/train.csv
 python -m src.eda --data data/raw/train.csv --output results/official --holidays data/raw/holidays_events.csv --stores data/raw/stores.csv
-python -m src.train --data data/raw/train.csv --output results/official --model-dir models/official --quick --trials 3 --max-series 12
+python -m src.train --data data/raw/train.csv --output results/official --model-dir models/official --horizon 30 --trials 3 --families BEVERAGES 'GROCERY I' PRODUCE
 python -m src.evaluate --predictions results/official/metrics/test_predictions.csv --output results/official/metrics/recomputed_test.json
 python -m src.predict --input data/raw/train.csv --model models/official/model.joblib --store 1 --family BEVERAGES --horizon 30 --output results/official/forecast_30_days.csv
-python -m src.report --results results/official --output docs/bao_cao_kaggle.md
+python -m src.verify_run --results results/official
+python -m src.report --results results/official --output docs/bao_cao_giua_ky.md
 ```
 
 Lệnh EDA có --holidays/--stores chỉ chạy khi các tệp đó tồn tại; nếu chỉ có train.csv,
 bỏ hai tùy chọn này. Lệnh predict minh họa cửa hàng 1 / BEVERAGES; phải chọn chuỗi có
-trong `results/official/run_manifest.json` sau khi train, vì quick chỉ học tập con.
+trong `results/official/run_manifest.json` sau khi train. Lệnh train chính thức ở trên không dùng quick,
+và học ba nhóm ở cả 54 cửa hàng. PowerShell có thể dùng `"GROCERY I"` thay cho `'GROCERY I'`.
 
 Train nhiều chuỗi hơn hoặc đầy đủ (tốn RAM/thời gian hơn; chưa đo trên toàn Kaggle):
 
@@ -100,6 +122,13 @@ Kaggle `test.csv` không có nhãn sales, **không** truyền file này cho pipe
 Holdout đánh giá nội bộ là hai khoảng thời gian cuối của train.csv có nhãn.
 
 ## 4. Pipeline và đánh giá tránh leakage
+
+Yêu cầu “thể hiện rõ quá trình train” được đáp ứng bằng mã `.fit(X_train,y_train)`,
+mốc train/validation/test, nhật ký từng cấu hình, tham số đầy đủ, loss train chẩn đoán,
+bảng tuning và artefact lưu/nạp. Xem [hướng dẫn trình bày bằng chứng](docs/minh_chung_huan_luyen.md)
+và mục **8.1–8.2, 9–10** của [báo cáo](docs/bao_cao_giua_ky.md).
+Ridge/RF không cần có epoch như mạng nơ-ron. Đồ thị HGB theo vòng boosting dùng số đo thật,
+không phải animation hoặc log dựng sẵn.
 
 ```mermaid
 flowchart LR
@@ -211,13 +240,16 @@ src/inventory.py               Công thức tồn kho và kiểm tra đầu vào
 src/demo_data.py               Sinh CSV mô phỏng có metadata
 src/eda.py                     EDA và ngày lễ theo địa bàn
 src/report.py                  Sinh báo cáo tiếng Việt từ kết quả thực
+src/training_evidence.py       Nhật ký từng fit, snapshot mã nguồn, đồ thị train/tuning
+src/verify_run.py              Tái hiện holdout và kiểm tra suy luận trên CSV thực
 src/utils.py                   JSON, SHA-256, metadata nguồn
 data/{raw,demo,processed}/     Dữ liệu chính thức, demo và trung gian
 models/{demo,official}/        evaluation_model.joblib và model.joblib
 results/<nguồn>/               run_manifest.json, forecast_7_days.csv
+                              training.log, training_events.jsonl, source_snapshot/
 results/<nguồn>/metrics/       comparison, tuning, tuning_summary, test_predictions,
                               all_models_test_predictions, test_by_series,
-                              data_quality, eda, recomputed_test
+                              data_quality, eda, recomputed_test, training_history, verification
 results/<nguồn>/figures/       Biểu đồ HTML tương tác, mở cục bộ
 results/metrics/pytest.xml     Kết quả kiểm thử thực thi
 tests/                        Tiền xử lý, leakage, recursion, E2E, EDA và giao diện
@@ -227,6 +259,7 @@ docs/                         Báo cáo, phân công, thuyết trình và nhật
 Xem [báo cáo](docs/bao_cao_giua_ky.md), [phân công](docs/phan_cong_nhiem_vu.md),
 [hướng dẫn thuyết trình](docs/huong_dan_thuyet_trinh.md) và [kiểm thử](docs/kiem_thu.md).
 Có [bảng đối chiếu yêu cầu và bằng chứng](docs/doi_chieu_yeu_cau.md) để kiểm tra trước khi nộp.
+Xem [nhật ký build dự án](docs/nhat_ky_build_du_an.md) để tra cứu từng đầu việc, mô tả, output và các mốc thực nghiệm.
 Không tự điền tên hoặc phần đóng góp chưa được xác nhận.
 
 ## 8. Kiểm thử và lỗi thường gặp
@@ -257,5 +290,6 @@ Nhật ký xác nhận thực thi nằm ở docs/kiem_thu.md. AppTest không tha
 | Cảnh báo không đọc được số lõi vật lý ở sandbox macOS | joblib tự dùng số lõi logic; RF và native pool đã được giới hạn 1; không làm đổi dữ liệu/metric |
 | Model tạo bởi phiên bản thư viện khác | Cài đúng requirements.txt và train lại, không nạp artefact không rõ nguồn |
 
-Giới hạn còn lại: chưa train Kaggle thật, chưa có rolling-origin nhiều mùa, chưa khoảng dự báo,
-chưa kiểm thử RAM/tốc độ trên toàn dataset, chưa đánh giá độ chính xác cấp SKU hay chi phí tồn kho thực.
+Giới hạn còn lại: chỉ train 3/33 nhóm hàng ở 54 cửa hàng, chưa có rolling-origin nhiều mùa,
+chưa khoảng dự báo, chưa kiểm thử RAM/tốc độ khi train toàn bộ 1.782 chuỗi,
+chưa đánh giá độ chính xác cấp SKU hay chi phí tồn kho thực.

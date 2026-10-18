@@ -8,15 +8,15 @@ scikit-learn 1.6.1, Streamlit 1.49.1. Xem requirements-lock.txt và results/demo
 
 | Kiểm tra đã chạy | Kết quả thực tế |
 | --- | --- |
-| `python -m pytest -q --junitxml=results/metrics/pytest.xml` | **40 passed**, 1 warning, 5,15 giây |
+| `python -m pytest -q --junitxml=results/metrics/pytest.xml` | **41 passed**, 1 warning, 6,04 giây |
 | `python -m pip check` | No broken requirements found |
 | Kiểm tra AST mọi app/src/tests Python | Tất cả file phân tích cú pháp thành công |
-| `src.data_processing` trên data/demo/sales.csv | 4.320 dòng hợp lệ, 0 missing theo mọi cột, 0 trùng khóa |
-| `src.train --quick --trials 3` | 3 thuật toán ML đã fit thực tế + seasonal naive; 9 lượt random search và 3 cấu hình gốc; validation/test 30 ngày, mỗi tập 270 quan sát |
+| `src.data_processing` trên data/demo/sales.csv | Demo 4.320 dòng hợp lệ; CSV Kaggle 3.000.888 dòng cũng không missing/trùng khóa, đã kiểm tra trước train |
+| `src.train` trên CSV Kaggle, không quick | 3 thuật toán ML + naive; 9 lượt random search, 3 cấu hình ML gốc; 54 cửa hàng × 3 nhóm, validation/test mỗi tập 4.860 quan sát |
 | Lưu/nạp model trong train | Dự báo trước/sau joblib khớp; đã tạo hai artefact evaluation/deployment |
-| `src.evaluate` từ test_predictions.csv | MAE 4,5287647987; RMSE 5,8655749532; WAPE 3,2560646415% |
+| `src.evaluate` từ test_predictions.csv | Kaggle: MAE 445,6333614054; RMSE 692,4955666579; WAPE 12,9036736764% |
 | `src.predict` bằng CSV từ đĩa, cửa hàng 1 / BEVERAGES / 30 ngày | 30 dòng CSV và metadata nguồn được xuất thành công |
-| `src.eda` | 6 biểu đồ EDA HTML và JSON chất lượng dữ liệu được xuất |
+| `src.eda` | 7 biểu đồ HTML trên CSV Kaggle, gồm lễ theo địa bàn; JSON thống kê và CSV tổng hợp; box plot dùng quantile toàn bộ dữ liệu |
 | `src.report` | Báo cáo 16 mục sinh từ manifest/metric thực tế |
 | Khởi động server Streamlit cục bộ | Server khởi động tại 127.0.0.1:8501 |
 | HTTP `/_stcore/health` và `/` | Cả hai trả **HTTP 200**, health body `ok` |
@@ -25,7 +25,7 @@ HTTP được xác nhận sau khi cấp quyền mở/kiểm tra server bên ngo�
 AppTest chạy nội bộ thực thi mã ứng dụng; chưa kiểm tra giao diện bằng trình duyệt thật hoặc chụp ảnh.
 Server kiểm tra được dừng sau khi xác minh; người dùng khởi động lại bằng lệnh trong README.
 
-## Phạm vi 40 test tự động
+## Phạm vi 41 test tự động
 
 - Schema, đọc CSV mới, sắp thời gian; từ chối sales âm/NaN/vô hạn, ngày sai, family rỗng,
   mã cửa hàng không nguyên, khuyến mãi âm và khóa trùng.
@@ -50,7 +50,7 @@ Server kiểm tra được dừng sau khi xác minh; người dùng khởi độ
 Lần chạy đầu trên NumPy 2.0.2 có RuntimeWarning phép nhân ma trận dù đầu ra hữu hạn.
 Đã chuyển sang NumPy 1.26.4, train lại và chạy lại test; cảnh báo số học không còn.
 Một test UI ban đầu chọn nhầm selectbox nguồn khi đổi horizon; đã sửa test chọn theo nhãn widget.
-Phiên bản cuối cùng 40 test đều qua; JUnit XML là kết quả lần chạy cuối, không dùng kết quả lần lỗi.
+Phiên bản cập nhật 41 test đều qua; JUnit XML là kết quả lần chạy cuối, không dùng kết quả lần lỗi.
 
 Còn một UserWarning của joblib vì sandbox macOS không đọc được số lõi vật lý,
 joblib dùng số lõi logic thay thế. Không có test fail. RF n_jobs và native pool trong train
@@ -58,10 +58,27 @@ joblib dùng số lõi logic thay thế. Không có test fail. RF n_jobs và nat
 
 ## Những phần chưa xác minh
 
-Chưa có CSV Kaggle, nên chưa train/đánh giá dataset chính thức, chưa đo tài nguyên trên toàn bộ dữ liệu,
-chưa EDA ngày lễ thực tế của Ecuador (chỉ kiểm tra logic ghép bằng fixture mô phỏng).
+Đã có CSV Kaggle và đã EDA toàn bộ dữ liệu/ngày lễ thực tế. Phạm vi train chính thức là 54 cửa hàng × 3 nhóm;
+chưa train đủ 33 nhóm hoặc đo tài nguyên cho toàn bộ 1.782 chuỗi. Chưa backtest nhiều origin.
 Chưa kiểm thử trên Windows/Linux/Python 3.11, chưa chạy trình duyệt thật để đánh giá bố cục.
 Không có kiểm chứng tối ưu chi phí tồn kho hoặc khả năng tránh thiếu hàng trong vận hành thực tế.
 
 Để tái lập: làm theo README, xem `results/metrics/pytest.xml` và
-`results/demo/metrics/comparison.csv`, `tuning.json`, `tuning_summary.csv`, `test_predictions.csv`.
+`results/official/metrics/comparison.csv`, `tuning.json`, `tuning_summary.csv`, `test_predictions.csv`.
+Bản demo và artefact mô phỏng cũ vẫn giữ riêng, không dùng số đo demo thay cho Kaggle.
+
+## Kiểm chứng bổ sung sau khi hoàn tất thực nghiệm Kaggle
+
+Bộ pytest cuối: **41 passed**, 0 failures, 0 errors, 0 skipped; JUnit 6.035 giây. Một warning joblib như đã mô tả.
+
+Lần train chính thức không quick, 160 cây RF / 180 vòng HGB, 3 lượt random search mỗi thuật toán: tổng perf_counter **1151.051 giây**. Chọn **RandomForest** theo validation.
+
+Các kiểm tra sau đã thực sự chạy:
+
+- `python -m src.verify_run --results results/official`: hash CSV khớp; evaluation_model nạp lại tái hiện toàn bộ 4.860 dự báo holdout trong dung sai 1e-8.
+- Model triển khai sinh 1.134 dòng cho 7 ngày và 4.860 dòng cho 30 ngày, không trùng khóa và không có dự báo vô hạn; CSV ở results/official/forecast_*_days_all_series.csv.
+- `src.predict` đọc lại train.csv, lọc cửa hàng 1 / BEVERAGES, xuất đúng 30 dòng và sidecar metadata.
+- Streamlit AppTest trên CSV thật 3.000.888 dòng: nguồn mặc định Kaggle; mở đủ 6 trang không exception/error; nhấn dự báo 30 ngày trả 30 dòng; gửi biểu mẫu tồn kho hợp lệ trả 3 metric. Lưu tại results/official/metrics/app_verification.json.
+- Chưa kiểm tra hình ảnh bằng trình duyệt thật. HTTP 200 ghi ở bảng trên là kiểm tra server cục bộ ở lần xây dựng trước; kiểm chứng dữ liệu Kaggle lần này dùng AppTest.
+
+Lệnh demo train trực tiếp một chuỗi Kaggle đã chạy thành công, tổng **4.906 giây**, nguồn simulated=False; log/artefact lưu riêng ở results/live_training và models/live_training. Kết quả demo nhỏ không thay thế kết quả chính thức 162 chuỗi.

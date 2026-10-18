@@ -3,16 +3,20 @@
 | Thời lượng | Nội dung | Minh chứng |
 | --- | --- | --- |
 | 2 phút | Vấn đề dự báo nhóm hàng và rủi ro tồn kho; phân biệt với ERP | Giới thiệu và phạm vi |
-| 3 phút | CSV thật đang dùng, nhãn mô phỏng, EDA, đơn vị sales | data/demo/sales.metadata.json, trang Phân tích |
+| 3 phút | CSV Kaggle 3.000.888 dòng; phạm vi ML 54 cửa hàng × 3 nhóm; EDA, đơn vị sales | data/raw/train.metadata.json, trang Phân tích |
 | 4 phút | Lag/rolling, shift trước rolling, chia theo ngày, recursive holdout | feature_engineering.py; sơ đồ README; mốc run_manifest |
-| 4 phút | Ba mô hình, random search, trước/sau, chọn bằng validation | comparison.csv, tuning_summary.csv, trang Đánh giá |
+| 4 phút | Chỉ dòng fit trong mã, log từng cấu hình; ba mô hình, random search và lý do chọn | training.log, training_convergence.html, tuning_summary.csv, trang Đánh giá |
 | 3 phút | Demo dự báo 7/30 ngày, tải CSV, nhập tồn kho | Trang Dự báo / Quản lý tồn kho |
 | 2 phút | Test, lưu/nạp model, hạn chế và hướng phát triển | docs/kiem_thu.md và JUnit XML |
 | 2 phút | Vấn đáp | Các câu hỏi dưới đây |
 
 Chuẩn bị trước: kích hoạt .venv, chạy các lệnh trong README, mở Streamlit, mở sẵn biểu đồ HTML
-và các CSV kết quả. Không train lại toàn bộ ngay khi trình bày. Kiểm tra nhãn mô phỏng còn hiển thị.
-Nếu chưa có Kaggle, nói rõ chưa có thực nghiệm chính thức. Không gọi số liệu demo là độ chính xác trên Kaggle.
+và các CSV kết quả trong results/official. Giao diện tự chọn nguồn Kaggle khi có artefact chính thức.
+Không train lại toàn bộ ngay khi trình bày; chỉ demo một lượt fit nhỏ nếu còn thời gian.
+Lệnh train trực tiếp phạm vi một chuỗi có trong docs/minh_chung_huan_luyen.md,
+lưu riêng vào results/live_training và models/live_training.
+Phân biệt EDA toàn bộ 33 nhóm với model chỉ học 3 nhóm ở 54 cửa hàng.
+Nói rõ dữ liệu kết thúc năm 2017 nên dự báo bắt đầu 16/08/2017, không phải thời gian hiện tại.
 
 Các câu hỏi cần giải thích được:
 
@@ -29,5 +33,8 @@ Các câu hỏi cần giải thích được:
 11. Forecast là nhu cầu thật tuyệt đối? Không; sales có thể bị kiểm duyệt do hết hàng và gộp nhiều mặt hàng.
 12. Tại sao chưa có LightGBM/XGBoost? Bản hiện tại dùng HGB của sklearn làm boosting để giữ cài đặt gọn;
     đáp ứng ba thuật toán thực sự, có thể mở rộng và so sánh trong cùng protocol.
+13. Minh chứng đã train ở đâu? Chỉ `model.fit(...)` trong tuning.py; mở training.log và JSONL ghi
+    thời điểm fit, train_rows, tham số đầy đủ, thời gian; đối chiếu tuning.csv và model.joblib.
+    Đồ thị HGB là loss trên mẫu train, không dùng thay metric holdout.
 
 Không tự điền tên thành viên, phần đóng góp, mốc học hoặc số liệu chưa được xác minh.

@@ -1,4 +1,10 @@
-# Dữ liệu Kaggle (chưa được cung cấp trong workspace)
+# Dữ liệu Kaggle thực đã được cung cấp
+
+Đã kiểm tra train.csv: 3.000.888 dòng, 54 cửa hàng, 33 nhóm hàng, 1.684 ngày quan sát
+từ 2013-01-01 đến 2017-08-15. Không có missing value hay trùng khóa. Bốn ngày không có quan sát:
+2013-12-25, 2014-12-25, 2015-12-25, 2016-12-25. Có stores.csv và holidays_events.csv.
+train.csv.zip là bản nén tải về, không dùng lặp lại để nhân đôi dữ liệu.
+Nguồn theo người dùng xác nhận; metadata và SHA-256 CSV cục bộ nằm ở train.metadata.json.
 
 Tải từ [Store Sales – Time Series Forecasting](https://www.kaggle.com/competitions/store-sales-time-series-forecasting/data)
 sau khi đăng nhập và chấp thuận điều khoản cuộc thi. Giải nén `train.csv` vào thư mục này.
