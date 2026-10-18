@@ -1,5 +1,5 @@
 import pandas as pd
-from src.eda import holiday_effect, run_eda
+from src.eda import distribution_summary, holiday_effect, run_eda
 
 
 def test_holidays_respect_locale_and_transferred(sample, tmp_path):
@@ -27,3 +27,11 @@ def test_eda_outputs(tmp_path):
     assert result["source"]["simulated"]
     assert result["rows"] == 1080
     assert len(list((tmp_path / "results/figures").glob("eda_*.html"))) == 6
+
+
+def test_distribution_uses_all_values():
+    frame = pd.DataFrame({"group": ["A"] * 5, "sales": [0, 1, 2, 3, 100]})
+    summary = distribution_summary(frame, "group").iloc[0]
+    assert summary["count"] == 5
+    assert (summary.q1, summary["median"], summary.q3) == (1, 2, 3)
+    assert summary.upperfence == 3
