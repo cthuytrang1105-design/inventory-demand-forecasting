@@ -13,7 +13,7 @@ def markdown_table(frame):
     return "\n".join("| " + " | ".join(row) + " |" for row in rows)
 
 
-def generate_report(results="results/demo", output="docs/bao_cao_giua_ky.md"):
+def generate_report(results="results/official", output="docs/bao_cao_giua_ky.md"):
     root = Path(results)
     manifest = json.loads((root / "run_manifest.json").read_text(encoding="utf-8"))
     quality = json.loads((root / "metrics/data_quality.json").read_text(encoding="utf-8"))
@@ -208,7 +208,6 @@ do hết hàng. Không diễn giải sales thành doanh thu tiền tệ.
 ## 5. Giới thiệu dataset
 
 Nguồn lần chạy này: **{source['source']}**.
-Đánh dấu mô phỏng: **{source.get('simulated', False)}**.
 CSV đã kiểm tra thực tế có {quality['rows']:,} dòng; dùng {quality['selected_rows']:,} dòng
 cho {source['series_count']} chuỗi. Cột thực tế: {', '.join(quality['columns'])}.
 Đơn vị: {source['unit']}.
@@ -221,7 +220,7 @@ Phạm vi lần chạy: **{len({pair[0] for pair in manifest['series']})} cửa 
 {eda_note}
 Phạm vi mô hình có thể nhỏ hơn EDA; số liệu test chỉ đại diện các chuỗi thực sự được train.
 Các tệp chính thức cần tải sau khi đăng nhập
-và chấp thuận điều khoản; README có lệnh huấn luyện riêng, tách artefact demo/official.
+và chấp thuận điều khoản; xem README để chạy toàn bộ quy trình trên dữ liệu Kaggle.
 
 ## 6. Phân tích và tiền xử lý dữ liệu
 
@@ -317,12 +316,12 @@ Artefact `evaluation_model.joblib` chỉ fit đến trước test để tái hi�
 đánh giá độc lập, `model.joblib` được refit trên toàn bộ lịch sử để dự báo mới. Không dùng bản
 refit này để báo lại test. SHA-256 của CSV và danh sách chuỗi nằm trong run_manifest.json.
 
-## 11. Mô tả hệ thống demo
+## 11. Mô tả ứng dụng
 
 Streamlit gồm sáu trang: Tổng quan, Phân tích dữ liệu, Dự báo nhu cầu, Quản lý tồn kho,
 Đánh giá mô hình, Giới thiệu hệ thống. Người dùng lọc cửa hàng/nhóm hàng, chọn 7 hoặc 30 ngày,
 xem bảng/biểu đồ và tải CSV. Giao diện chỉ nạp model đã train, không tự kích hoạt huấn luyện.
-Nguồn mô phỏng được hiển thị rõ. Đầu vào thiếu model hoặc CSV sai được thông báo.
+Đầu vào thiếu model hoặc CSV sai được thông báo.
 Pipeline CLI `src.predict` nhận CSV lịch sử mới có sales đã biết, tiền xử lý như train,
 nạp artefact và dự báo từ ngày sau ngày chốt cuối. Không hỗ trợ chuỗi cửa hàng/nhóm hàng chưa học.
 
@@ -387,7 +386,7 @@ phiên bản trong manifest. Không trích dẫn nguồn giả hoặc điền k�
 
 if __name__ == "__main__":
     p = argparse.ArgumentParser(description=__doc__)
-    p.add_argument("--results", default="results/demo")
+    p.add_argument("--results", default="results/official")
     p.add_argument("--output", default="docs/bao_cao_giua_ky.md")
     args = p.parse_args()
     print(generate_report(args.results, args.output))
