@@ -1,0 +1,68 @@
+{
+  "1.1": {
+    "image": "docs/figures/bao_cao_giua_ky/hinh_1_1_quy_trinh.png",
+    "source": "README.md mục 4; src/train.py; sơ đồ vẽ bằng SVG",
+    "details": "",
+    "sha256": "fb7e759a6073fbd378dea23af55894d0f708f2f71db12002aa2bbfd9092cb43e"
+  },
+  "2.1": {
+    "image": "docs/figures/bao_cao_giua_ky/hinh_2_1_xu_huong_sales.png",
+    "source": "results/official/figures/eda_daily.html",
+    "details": "Xuất từ biểu đồ thật, đổi kiểu nét và màu xám để in đen trắng; giữ nguyên dữ liệu.",
+    "sha256": "7f5db21a1a29f802d00c1cc681945bff3630ad92cd2b0c933ea9b4f59f0bc6ce"
+  },
+  "2.2": {
+    "image": "docs/figures/bao_cao_giua_ky/hinh_2_2_khuyen_mai.png",
+    "source": "results/official/figures/eda_promotion.html",
+    "details": "Xuất từ biểu đồ thật, đổi kiểu nét và màu xám để in đen trắng; giữ nguyên dữ liệu.",
+    "sha256": "373c9545cee389b81f9d68a840de17ebb28a52c37b6fd97df9235eaeda426654"
+  },
+  "3.1": {
+    "image": "docs/figures/bao_cao_giua_ky/hinh_3_1_chia_thoi_gian.png",
+    "source": "results/official/run_manifest.json: split",
+    "details": "Vẽ từ mốc thời gian trong manifest, có vùng phóng to hai tập holdout.",
+    "sha256": "f3b33cd9b783b822d3700724b00831f57a96a67e30776ede27b04c2222197a8f"
+  },
+  "3.2": {
+    "image": "docs/figures/bao_cao_giua_ky/hinh_3_2_nhat_ky_train.png",
+    "source": "results/official/training_events.jsonl",
+    "details": "Hai sự kiện thật; timestamp trong ảnh là UTC.",
+    "sha256": "b6675993d844ed49e3f608f33da61d9b556c239700c772eb24e9081b51797796"
+  },
+  "4.1": {
+    "image": "docs/figures/bao_cao_giua_ky/hinh_4_1_tuning.png",
+    "source": "results/official/figures/tuning_validation.html",
+    "details": "Xuất từ biểu đồ thật, đổi kiểu nét và màu xám để in đen trắng; giữ nguyên dữ liệu.",
+    "sha256": "a9d03abfe0c9fc1aaadcf8fa1cf25d369105a5eebda0bd01479e2dcf9d5f8bae"
+  },
+  "4.2": {
+    "image": "docs/figures/bao_cao_giua_ky/hinh_4_2_hgb.png",
+    "source": "results/official/figures/training_convergence.html",
+    "details": "Xuất từ biểu đồ thật, đổi kiểu nét và màu xám để in đen trắng; giữ nguyên dữ liệu.",
+    "sha256": "36d51910d1ce13e51e13db9e0a71879e6c3bb755c1293225def2a56a88a4ac2b"
+  },
+  "4.3": {
+    "image": "docs/figures/bao_cao_giua_ky/hinh_4_3_test.png",
+    "source": "results/official/figures/test_actual_vs_forecast.html",
+    "details": "Xuất từ biểu đồ thật, đổi kiểu nét và màu xám để in đen trắng; giữ nguyên dữ liệu.",
+    "sha256": "10c76dabff9c5f192de3da55b9e8dc7a4437a93a9a3b8b71a67ffa80e8dcaa04"
+  },
+  "6.1": {
+    "image": "docs/figures/bao_cao_giua_ky/hinh_6_1_pytest.png",
+    "source": "Kết quả stdout/stderr của python -m pytest -q chạy trong lượt cập nhật báo cáo",
+    "details": "Giữ nguyên toàn bộ đầu ra, gồm cảnh báo joblib.",
+    "sha256": "17098f077bf18421fc6e974304fd3faa52c49a64fbcb2ca57ef453b425b745c4"
+  },
+  "5.1": {
+    "image": "docs/figures/bao_cao_giua_ky/hinh_5_1_du_bao.png",
+    "source": "app.py; model official; cửa hàng 1, BEVERAGES, 30 ngày; ngày đầu 16/08/2017",
+    "details": "Ảnh chụp ứng dụng Streamlit thực trên Chrome. Tăng cỡ chữ trình duyệt và giới hạn chiều rộng khung để đọc rõ trong báo cáo; không thay đổi dữ liệu.",
+    "sha256": "ca5480bba91d29a09a455465c77216161aeb5e7f7a25c530b650d4feeeb423b5"
+  },
+  "5.2": {
+    "image": "docs/figures/bao_cao_giua_ky/hinh_5_2_ton_kho.png",
+    "source": "app.py; model official; cửa hàng 1/BEVERAGES; chân trời 30; tồn 300, lead time 5, an toàn 50, đang về 0",
+    "details": "Ảnh chụp ứng dụng Streamlit thực trên Chrome. Tăng cỡ chữ trình duyệt và giới hạn chiều rộng khung để đọc rõ trong báo cáo; không thay đổi dữ liệu.",
+    "sha256": "305a6ae1e08b1347c5eedc275185a4f162db1c5625cd73e6e3e7c358ef434ae0"
+  }
+}
