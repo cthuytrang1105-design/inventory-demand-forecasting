@@ -1,0 +1,44 @@
+{
+  "source": {
+    "source": "DỮ LIỆU MÔ PHỎNG — tạo bởi src.demo_data, không phải Kaggle",
+    "simulated": true,
+    "seed": 42,
+    "days": 480,
+    "unit": "đơn vị nhu cầu mô phỏng; không đại diện SKU thực"
+  },
+  "rows": 4320,
+  "columns": [
+    "id",
+    "date",
+    "store_nbr",
+    "family",
+    "sales",
+    "onpromotion"
+  ],
+  "missing_values": {
+    "id": 0,
+    "date": 0,
+    "store_nbr": 0,
+    "family": 0,
+    "sales": 0,
+    "onpromotion": 0
+  },
+  "duplicate_rows": 0,
+  "duplicate_keys": 0,
+  "date_min": "2024-01-01",
+  "date_max": "2025-04-24",
+  "stores": 3,
+  "families": 3,
+  "sales_summary": {
+    "count": 4320.0,
+    "mean": 122.38269791666667,
+    "std": 33.67700300211743,
+    "min": 46.425,
+    "25%": 95.83324999999999,
+    "50%": 118.49449999999999,
+    "75%": 147.75525,
+    "max": 221.151
+  },
+  "interpretation": "Mô tả tương quan, không suy luận tác động nhân quả của khuyến mãi/ngày lễ.",
+  "holiday_analysis": "Chưa có holidays_events.csv; không tự gán ngày lễ từ dữ liệu không tồn tại."
+}

@@ -1,0 +1,25 @@
+{
+  "history_source": {
+    "source": "DỮ LIỆU MÔ PHỎNG — tạo bởi src.demo_data, không phải Kaggle",
+    "simulated": true,
+    "seed": 42,
+    "days": 480,
+    "unit": "đơn vị nhu cầu mô phỏng; không đại diện SKU thực"
+  },
+  "training_source": {
+    "source": "DỮ LIỆU MÔ PHỎNG — tạo bởi src.demo_data, không phải Kaggle",
+    "simulated": true,
+    "seed": 42,
+    "days": 480,
+    "unit": "đơn vị nhu cầu mô phỏng; không đại diện SKU thực",
+    "data_sha256": "bf9ee3f58d2d628270ece43973023a8dd68176b84e1e4cb98e706f0e5a47dfe6",
+    "data_path": "data/demo/sales.csv",
+    "scope": "cửa hàng × nhóm hàng × ngày",
+    "series_count": 9
+  },
+  "history_sha256": "bf9ee3f58d2d628270ece43973023a8dd68176b84e1e4cb98e706f0e5a47dfe6",
+  "model_name": "Ridge",
+  "assumptions": "Không dùng khuyến mãi, dầu, giao dịch hoặc sự kiện tương lai. Recursive forecast; dự báo chặn tại 0.",
+  "origin": "2025-04-24",
+  "horizon": 30
+}

@@ -1,0 +1,237 @@
+{
+  "search_spaces": {
+    "Ridge": {
+      "model__alpha": [
+        0.1,
+        1.0,
+        10.0,
+        100.0,
+        1000.0
+      ]
+    },
+    "RandomForest": {
+      "model__max_depth": [
+        6,
+        10,
+        16,
+        null
+      ],
+      "model__min_samples_leaf": [
+        1,
+        3,
+        6
+      ],
+      "model__max_features": [
+        0.7,
+        1.0
+      ]
+    },
+    "HistGradientBoosting": {
+      "model__learning_rate": [
+        0.03,
+        0.06,
+        0.12
+      ],
+      "model__max_leaf_nodes": [
+        7,
+        15,
+        31
+      ],
+      "model__l2_regularization": [
+        0.0,
+        1.0,
+        10.0
+      ]
+    }
+  },
+  "strategy": "ParameterSampler + chronological single-origin recursive validation; default also eligible",
+  "trials_per_model": 3,
+  "records": [
+    {
+      "model": "SeasonalNaive",
+      "trial": 0,
+      "stage": "before_tuning",
+      "params": {},
+      "MAE": 6.844996296296297,
+      "RMSE": 8.805348584809122,
+      "WAPE_pct": 5.012218059361086,
+      "train_seconds": 2.080000001125626e-07,
+      "inference_seconds": 0.062049290999999895,
+      "prediction_rows": 270
+    },
+    {
+      "model": "Ridge",
+      "trial": 0,
+      "stage": "before_tuning",
+      "params": {},
+      "MAE": 4.570347214291914,
+      "RMSE": 5.80644303270493,
+      "WAPE_pct": 3.3466163973557497,
+      "train_seconds": 0.005329332999999936,
+      "inference_seconds": 0.09047487499999995,
+      "prediction_rows": 270
+    },
+    {
+      "model": "Ridge",
+      "trial": 1,
+      "stage": "random_search",
+      "params": {
+        "model__alpha": 1.0
+      },
+      "MAE": 4.570347214291914,
+      "RMSE": 5.80644303270493,
+      "WAPE_pct": 3.3466163973557497,
+      "train_seconds": 0.0025284999999999336,
+      "inference_seconds": 0.08856891699999991,
+      "prediction_rows": 270
+    },
+    {
+      "model": "Ridge",
+      "trial": 2,
+      "stage": "random_search",
+      "params": {
+        "model__alpha": 1000.0
+      },
+      "MAE": 5.2073402814258145,
+      "RMSE": 6.681252956052944,
+      "WAPE_pct": 3.813051734436046,
+      "train_seconds": 0.0023742920000000556,
+      "inference_seconds": 0.08782616700000001,
+      "prediction_rows": 270
+    },
+    {
+      "model": "Ridge",
+      "trial": 3,
+      "stage": "random_search",
+      "params": {
+        "model__alpha": 10.0
+      },
+      "MAE": 4.612247671792262,
+      "RMSE": 5.847874548950379,
+      "WAPE_pct": 3.3772978207909046,
+      "train_seconds": 0.002429624999999991,
+      "inference_seconds": 0.09732774999999982,
+      "prediction_rows": 270
+    },
+    {
+      "model": "RandomForest",
+      "trial": 0,
+      "stage": "before_tuning",
+      "params": {},
+      "MAE": 5.342877860226672,
+      "RMSE": 6.7081563501872425,
+      "WAPE_pct": 3.9122985230070366,
+      "train_seconds": 0.8640915830000002,
+      "inference_seconds": 0.1337927910000003,
+      "prediction_rows": 270
+    },
+    {
+      "model": "RandomForest",
+      "trial": 1,
+      "stage": "random_search",
+      "params": {
+        "model__min_samples_leaf": 6,
+        "model__max_features": 0.7,
+        "model__max_depth": 10
+      },
+      "MAE": 5.3649590172773465,
+      "RMSE": 6.740527744676355,
+      "WAPE_pct": 3.9284673519369897,
+      "train_seconds": 0.5101081669999998,
+      "inference_seconds": 0.13621070800000012,
+      "prediction_rows": 270
+    },
+    {
+      "model": "RandomForest",
+      "trial": 2,
+      "stage": "random_search",
+      "params": {
+        "model__min_samples_leaf": 3,
+        "model__max_features": 1.0,
+        "model__max_depth": 16
+      },
+      "MAE": 5.33061113045526,
+      "RMSE": 6.745089181191655,
+      "WAPE_pct": 3.903316264751786,
+      "train_seconds": 0.8669388330000003,
+      "inference_seconds": 0.1367617499999998,
+      "prediction_rows": 270
+    },
+    {
+      "model": "RandomForest",
+      "trial": 3,
+      "stage": "random_search",
+      "params": {
+        "model__min_samples_leaf": 1,
+        "model__max_features": 0.7,
+        "model__max_depth": 6
+      },
+      "MAE": 5.613083962926155,
+      "RMSE": 7.1505101111116645,
+      "WAPE_pct": 4.110155738566487,
+      "train_seconds": 0.3755627920000002,
+      "inference_seconds": 0.13389741700000002,
+      "prediction_rows": 270
+    },
+    {
+      "model": "HistGradientBoosting",
+      "trial": 0,
+      "stage": "before_tuning",
+      "params": {},
+      "MAE": 5.293341176816644,
+      "RMSE": 6.661763314522663,
+      "WAPE_pct": 3.8760255071512155,
+      "train_seconds": 0.06985012499999943,
+      "inference_seconds": 0.10315229099999979,
+      "prediction_rows": 270
+    },
+    {
+      "model": "HistGradientBoosting",
+      "trial": 1,
+      "stage": "random_search",
+      "params": {
+        "model__max_leaf_nodes": 31,
+        "model__learning_rate": 0.12,
+        "model__l2_regularization": 0.0
+      },
+      "MAE": 5.459720053381673,
+      "RMSE": 6.826538017567295,
+      "WAPE_pct": 3.9978556986834834,
+      "train_seconds": 0.08233887499999959,
+      "inference_seconds": 0.09512320799999952,
+      "prediction_rows": 270
+    },
+    {
+      "model": "HistGradientBoosting",
+      "trial": 2,
+      "stage": "random_search",
+      "params": {
+        "model__max_leaf_nodes": 15,
+        "model__learning_rate": 0.06,
+        "model__l2_regularization": 1.0
+      },
+      "MAE": 5.400085318587352,
+      "RMSE": 6.862652986989933,
+      "WAPE_pct": 3.9541884296649403,
+      "train_seconds": 0.05831233400000002,
+      "inference_seconds": 0.09352745799999962,
+      "prediction_rows": 270
+    },
+    {
+      "model": "HistGradientBoosting",
+      "trial": 3,
+      "stage": "random_search",
+      "params": {
+        "model__max_leaf_nodes": 7,
+        "model__learning_rate": 0.03,
+        "model__l2_regularization": 1.0
+      },
+      "MAE": 8.836735579232872,
+      "RMSE": 11.686561563974422,
+      "WAPE_pct": 6.470660280706807,
+      "train_seconds": 0.04009962499999986,
+      "inference_seconds": 0.09631495799999978,
+      "prediction_rows": 270
+    }
+  ]
+}

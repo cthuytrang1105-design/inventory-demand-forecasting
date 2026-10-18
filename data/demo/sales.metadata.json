@@ -1,0 +1,7 @@
+{
+  "source": "DỮ LIỆU MÔ PHỎNG — tạo bởi src.demo_data, không phải Kaggle",
+  "simulated": true,
+  "seed": 42,
+  "days": 480,
+  "unit": "đơn vị nhu cầu mô phỏng; không đại diện SKU thực"
+}

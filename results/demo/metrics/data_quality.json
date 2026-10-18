@@ -1,0 +1,34 @@
+{
+  "rows": 4320,
+  "columns": [
+    "id",
+    "date",
+    "store_nbr",
+    "family",
+    "sales",
+    "onpromotion"
+  ],
+  "missing_values": {
+    "id": 0,
+    "date": 0,
+    "store_nbr": 0,
+    "family": 0,
+    "sales": 0,
+    "onpromotion": 0
+  },
+  "duplicate_rows": 0,
+  "duplicate_keys": 0,
+  "selected_rows": 4320,
+  "inserted_calendar_days": 0,
+  "excluded_warmup_observed_rows": 252,
+  "sales_summary": {
+    "count": 4320.0,
+    "mean": 122.38269791666667,
+    "std": 33.67700300211743,
+    "min": 46.425,
+    "25%": 95.83324999999999,
+    "50%": 118.49449999999999,
+    "75%": 147.75525,
+    "max": 221.151
+  }
+}

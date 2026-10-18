@@ -1,0 +1,100 @@
+{
+  "created_utc": "2026-10-18T03:43:18.271128+00:00",
+  "metadata": {
+    "source": "DỮ LIỆU MÔ PHỎNG — tạo bởi src.demo_data, không phải Kaggle",
+    "simulated": true,
+    "seed": 42,
+    "days": 480,
+    "unit": "đơn vị nhu cầu mô phỏng; không đại diện SKU thực",
+    "data_sha256": "bf9ee3f58d2d628270ece43973023a8dd68176b84e1e4cb98e706f0e5a47dfe6",
+    "data_path": "data/demo/sales.csv",
+    "scope": "cửa hàng × nhóm hàng × ngày",
+    "series_count": 9
+  },
+  "environment": {
+    "python": "3.9.6",
+    "platform": "macOS-26.5.1-arm64-arm-64bit",
+    "numpy": "1.26.4",
+    "pandas": "2.2.3",
+    "scikit-learn": "1.6.1",
+    "joblib": "1.5.2",
+    "streamlit": "1.49.1"
+  },
+  "quick": true,
+  "max_series": 12,
+  "horizon": 30,
+  "seed": 42,
+  "selected_model": "Ridge",
+  "best_params": {
+    "model__alpha": 1.0
+  },
+  "selection_reason": "Ridge có WAPE validation nhỏ nhất (nếu WAPE không xác định dùng MAE); nếu bằng nhau ưu tiên thời gian suy luận thấp hơn. Test không tham gia tuning/chọn mô hình.",
+  "series": [
+    [
+      1,
+      "BEVERAGES"
+    ],
+    [
+      1,
+      "GROCERY I"
+    ],
+    [
+      1,
+      "PRODUCE"
+    ],
+    [
+      2,
+      "BEVERAGES"
+    ],
+    [
+      2,
+      "GROCERY I"
+    ],
+    [
+      2,
+      "PRODUCE"
+    ],
+    [
+      3,
+      "BEVERAGES"
+    ],
+    [
+      3,
+      "GROCERY I"
+    ],
+    [
+      3,
+      "PRODUCE"
+    ]
+  ],
+  "split": {
+    "train": {
+      "start": "2024-01-01",
+      "end": "2025-02-23",
+      "rows": 3780
+    },
+    "validation": {
+      "start": "2025-02-24",
+      "end": "2025-03-25",
+      "rows": 270
+    },
+    "test": {
+      "start": "2025-03-26",
+      "end": "2025-04-24",
+      "rows": 270
+    }
+  },
+  "train_feature_rows": 3528,
+  "test_untouched_during_selection": true,
+  "deployment_refit_seconds": 0.003320458000000137,
+  "total_seconds": 6.1803205420000005,
+  "model_path": "models/demo/model.joblib",
+  "evaluation_model_path": "models/demo/evaluation_model.joblib",
+  "assumptions": [
+    "Không dùng biến ngoại sinh, không cần biết khuyến mãi/dầu/giao dịch tương lai.",
+    "Ngày thiếu ffill từ quá khứ chỉ làm state, không tạo nhãn train/test.",
+    "Chỉ đánh giá quan sát thật; dự báo nhiều bước recursive, chặn âm tại 0.",
+    "Một origin validation và một origin test, chưa rolling-origin nhiều giai đoạn.",
+    "Artefact triển khai refit trên cả test sau khi test đã hoàn tất; tái hiện test bằng evaluation_model."
+  ]
+}
