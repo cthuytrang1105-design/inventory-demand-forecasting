@@ -1,0 +1,16 @@
+{
+  "verified": true,
+  "source": "CSV Kaggle thực 3.000.888 dòng",
+  "default_mode": "CSV người dùng / Kaggle",
+  "pages": [
+    "Tổng quan",
+    "Phân tích dữ liệu",
+    "Dự báo nhu cầu",
+    "Quản lý tồn kho",
+    "Đánh giá mô hình",
+    "Giới thiệu hệ thống"
+  ],
+  "forecast_30_rows": true,
+  "inventory_form": true,
+  "method": "Streamlit AppTest; chưa kiểm tra hình ảnh bằng trình duyệt"
+}
