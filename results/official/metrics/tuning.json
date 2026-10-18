@@ -56,8 +56,8 @@
       "MAE": 517.8128447798354,
       "RMSE": 922.2872317485328,
       "WAPE_pct": 14.531416565496126,
-      "train_seconds": 2.0799999989051798e-07,
-      "inference_seconds": 0.2671747500000001,
+      "train_seconds": 1.6599999996813608e-07,
+      "inference_seconds": 0.25928062500000015,
       "prediction_rows": 4860
     },
     {
@@ -82,8 +82,8 @@
       "MAE": 569.9543706261226,
       "RMSE": 870.0081957271238,
       "WAPE_pct": 15.994667699706861,
-      "train_seconds": 0.13435841599999998,
-      "inference_seconds": 0.2856110000000003,
+      "train_seconds": 0.133448542,
+      "inference_seconds": 0.27549037499999995,
       "prediction_rows": 4860
     },
     {
@@ -110,8 +110,8 @@
       "MAE": 569.9543706261226,
       "RMSE": 870.0081957271238,
       "WAPE_pct": 15.994667699706861,
-      "train_seconds": 0.11609691700000013,
-      "inference_seconds": 0.301656167,
+      "train_seconds": 0.11026533399999972,
+      "inference_seconds": 0.2838924579999995,
       "prediction_rows": 4860
     },
     {
@@ -138,8 +138,8 @@
       "MAE": 559.0898053674644,
       "RMSE": 863.7088318484764,
       "WAPE_pct": 15.689774676738873,
-      "train_seconds": 0.11662904200000046,
-      "inference_seconds": 0.2913807909999999,
+      "train_seconds": 0.10939724999999978,
+      "inference_seconds": 0.36334912500000005,
       "prediction_rows": 4860
     },
     {
@@ -166,8 +166,8 @@
       "MAE": 569.6866396365145,
       "RMSE": 869.8013814106434,
       "WAPE_pct": 15.987154347002873,
-      "train_seconds": 0.13838866700000008,
-      "inference_seconds": 0.28546104200000055,
+      "train_seconds": 0.15419604099999962,
+      "inference_seconds": 0.317394041,
       "prediction_rows": 4860
     },
     {
@@ -202,8 +202,8 @@
       "MAE": 449.5331222742886,
       "RMSE": 735.4854588806595,
       "WAPE_pct": 12.615278136897572,
-      "train_seconds": 239.935787708,
-      "inference_seconds": 0.45222320900001023,
+      "train_seconds": 239.33570145899998,
+      "inference_seconds": 0.4567329169999823,
       "prediction_rows": 4860
     },
     {
@@ -242,8 +242,8 @@
       "MAE": 449.0079973913329,
       "RMSE": 732.0230382692419,
       "WAPE_pct": 12.600541522114712,
-      "train_seconds": 142.966324708,
-      "inference_seconds": 0.4351006250000182,
+      "train_seconds": 145.133353875,
+      "inference_seconds": 0.44185858299999836,
       "prediction_rows": 4860
     },
     {
@@ -282,8 +282,8 @@
       "MAE": 451.1381443935425,
       "RMSE": 735.0862646875464,
       "WAPE_pct": 12.660319980194508,
-      "train_seconds": 300.95248687500003,
-      "inference_seconds": 0.5365891659999988,
+      "train_seconds": 304.446039708,
+      "inference_seconds": 0.5689552500000445,
       "prediction_rows": 4860
     },
     {
@@ -322,8 +322,8 @@
       "MAE": 511.99298241629117,
       "RMSE": 825.6906116367065,
       "WAPE_pct": 14.36809337795629,
-      "train_seconds": 92.20896333399992,
-      "inference_seconds": 0.4005368749999434,
+      "train_seconds": 101.41843345799998,
+      "inference_seconds": 0.4289252089999991,
       "prediction_rows": 4860
     },
     {
@@ -361,8 +361,8 @@
       "MAE": 516.2126652373244,
       "RMSE": 847.6088860300869,
       "WAPE_pct": 14.486510619754863,
-      "train_seconds": 12.49353762499993,
-      "inference_seconds": 0.30561024999997244,
+      "train_seconds": 12.715985167000099,
+      "inference_seconds": 0.30016933299998527,
       "prediction_rows": 4860
     },
     {
@@ -404,8 +404,8 @@
       "MAE": 528.099004762252,
       "RMSE": 847.4597540239532,
       "WAPE_pct": 14.820077762433767,
-      "train_seconds": 12.95312208300004,
-      "inference_seconds": 0.31298724999999195,
+      "train_seconds": 13.070899083999961,
+      "inference_seconds": 0.3111118340000303,
       "prediction_rows": 4860
     },
     {
@@ -447,8 +447,8 @@
       "MAE": 478.7716201665132,
       "RMSE": 772.3461008077934,
       "WAPE_pct": 13.435800062733431,
-      "train_seconds": 13.488572125000019,
-      "inference_seconds": 0.2944337500000529,
+      "train_seconds": 13.50654075,
+      "inference_seconds": 0.2953861669999469,
       "prediction_rows": 4860
     },
     {
@@ -490,8 +490,8 @@
       "MAE": 492.99703388543486,
       "RMSE": 789.0365013984053,
       "WAPE_pct": 13.835008801276922,
-      "train_seconds": 12.784129249999978,
-      "inference_seconds": 0.2926585000000159,
+      "train_seconds": 12.988785042000018,
+      "inference_seconds": 0.2986089590000347,
       "prediction_rows": 4860
     }
   ]
